@@ -1,0 +1,216 @@
+﻿@model WebApplication2.ViewModels.ProductCatalogViewModel
+@{
+    ViewData["Title"] = "Каталог товарів";
+}
+
+<div class="container my-5">
+    <div class="row">
+        <!-- Sidebar with filters -->
+        <div class="col-lg-3">
+            <div class="filter-sidebar">
+                <h5><i class="fas fa-filter"></i> Фільтри</h5>
+                
+                <form asp-action="Index" method="get">
+                    <!-- Search -->
+                    <div class="filter-group">
+                        <label class="form-label">Пошук</label>
+                        <input type="text" class="form-control" name="searchTerm" 
+                               value="@Model.SearchTerm" placeholder="Назва товару...">
+                    </div>
+                    
+                    <!-- Category -->
+                    <div class="filter-group">
+                        <label class="form-label">Категорія</label>
+                        <select class="form-select" name="categoryId">
+                            <option value="">Всі категорії</option>
+                            @foreach (var category in Model.Categories)
+                            {
+                                <option value="@category.Id" 
+                                        selected="@(Model.CategoryId == category.Id)">
+                                    @category.Name
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    
+                    <!-- Price Range -->
+                    <div class="filter-group">
+                        <label class="form-label">Ціна</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="number" class="form-control form-control-sm" 
+                                       name="minPrice" value="@Model.MinPrice" 
+                                       placeholder="Від" min="0">
+                            </div>
+                            <div class="col-6">
+                                <input type="number" class="form-control form-control-sm" 
+                                       name="maxPrice" value="@Model.MaxPrice" 
+                                       placeholder="До" min="0">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Brand -->
+                    <div class="filter-group">
+                        <label class="form-label">Бренд</label>
+                        <input type="text" class="form-control" name="brand" 
+                               value="@Model.Brand" placeholder="Назва бренду...">
+                    </div>
+                    
+                    <!-- Sort -->
+                    <div class="filter-group">
+                        <label class="form-label">Сортування</label>
+                        <select class="form-select" name="sortBy">
+                            <option value="name" selected="@(Model.SortBy == "name")">За назвою</option>
+                            <option value="price_asc" selected="@(Model.SortBy == "price_asc")">Ціна: від низької</option>
+                            <option value="price_desc" selected="@(Model.SortBy == "price_desc")">Ціна: від високої</option>
+                            <option value="rating" selected="@(Model.SortBy == "rating")">За рейтингом</option>
+                            <option value="newest" selected="@(Model.SortBy == "newest")">Найновіші</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Застосувати
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-redo"></i> Скинути
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Products Grid -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    @if (Model.CategoryId.HasValue)
+                    {
+                        var categoryName = Model.Categories.FirstOrDefault(c => c.Id == Model.CategoryId)?.Name;
+                        @categoryName
+                    }
+                    else if (!string.IsNullOrEmpty(Model.SearchTerm))
+                    {
+                        <text>Результати пошуку: "@Model.SearchTerm"</text>
+                    }
+                    else
+                    {
+                        <text>Всі товари</text>
+                    }
+                </h2>
+                <span class="text-muted">Знайдено: @Model.Products.Count() товарів</span>
+            </div>
+            
+            @if (Model.Products.Any())
+            {
+                <div class="row g-4">
+                    @foreach (var product in Model.Products)
+                    {
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 shadow-sm">
+                                <a asp-action="Details" asp-route-id="@product.Id">
+                                    <img src="@(product.ImageUrl ?? "/images/no-image.jpg")" 
+                                         class="card-img-top" 
+                                         alt="@product.Name"
+                                         style="height: 250px; object-fit: cover;">
+                                </a>
+                                <div class="card-body d-flex flex-column">
+                                    <span class="badge bg-primary mb-2 align-self-start">@product.Category.Name</span>
+                                    <h5 class="card-title">
+                                        <a asp-action="Details" asp-route-id="@product.Id" 
+                                           class="text-decoration-none text-dark">
+                                            @product.Name
+                                        </a>
+                                    </h5>
+                                    <p class="text-muted small">@product.Brand</p>
+                                    
+                                    @if (product.AverageRating > 0)
+                                    {
+                                        <div class="mb-2">
+                                            @for (int i = 0; i < 5; i++)
+                                            {
+                                                if (i < (int)product.AverageRating)
+                                                {
+                                                    <i class="fas fa-star text-warning"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="far fa-star text-warning"></i>
+                                                }
+                                            }
+                                            <small class="text-muted">(@product.ReviewCount)</small>
+                                        </div>
+                                    }
+                                    
+                                    <div class="mt-auto">
+                                        <h4 class="text-primary mb-3">@product.Price.ToString("N0") грн</h4>
+                                        
+                                        @if (product.StockQuantity > 0)
+                                        {
+                                            <span class="badge bg-success mb-2">В наявності</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger mb-2">Немає в наявності</span>
+                                        }
+                                        
+                                        <div class="d-grid gap-2">
+                                            <a asp-action="Details" asp-route-id="@product.Id" 
+                                               class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-info-circle"></i> Детальніше
+                                            </a>
+                                            @if (User.Identity?.IsAuthenticated == true && product.StockQuantity > 0)
+                                            {
+                                                <button class="btn btn-primary btn-sm add-to-cart" 
+                                                        data-product-id="@product.Id">
+                                                    <i class="fas fa-cart-plus"></i> До кошика
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                
+                <!-- Pagination -->
+                @if (Model.TotalPages > 1)
+                {
+                    <nav class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                    <a class="page-link" 
+                                       asp-action="Index" 
+                                       asp-route-pageNumber="@i"
+                                       asp-route-searchTerm="@Model.SearchTerm"
+                                       asp-route-categoryId="@Model.CategoryId"
+                                       asp-route-minPrice="@Model.MinPrice"
+                                       asp-route-maxPrice="@Model.MaxPrice"
+                                       asp-route-brand="@Model.Brand"
+                                       asp-route-sortBy="@Model.SortBy">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            }
+            else
+            {
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle fa-3x mb-3"></i>
+                    <h4>Товари не знайдено</h4>
+                    <p>Спробуйте змінити параметри пошуку або фільтрів</p>
+                    <a asp-action="Index" class="btn btn-primary">
+                        <i class="fas fa-arrow-left"></i> Повернутися до каталогу
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

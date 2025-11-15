@@ -1,0 +1,253 @@
+﻿@model WebApplication2.ViewModels.ProductDetailsViewModel
+@{
+    ViewData["Title"] = Model.Product.Name;
+}
+
+<div class="container my-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Головна</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Каталог</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Category" asp-route-id="@Model.Product.CategoryId">@Model.Product.Category.Name</a></li>
+            <li class="breadcrumb-item active">@Model.Product.Name</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Product Image -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm">
+                <img src="@(Model.Product.ImageUrl ?? "/images/no-image.jpg")" 
+                     class="card-img-top" 
+                     alt="@Model.Product.Name"
+                     style="max-height: 500px; object-fit: contain; padding: 20px;">
+            </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="col-lg-7">
+            <h1 class="mb-3">@Model.Product.Name</h1>
+            
+            <div class="mb-3">
+                <span class="badge bg-primary">@Model.Product.Category.Name</span>
+                <span class="badge bg-secondary">@Model.Product.Brand</span>
+            </div>
+
+            @if (Model.Product.AverageRating > 0)
+            {
+                <div class="mb-3">
+                    @for (int i = 0; i < 5; i++)
+                    {
+                        if (i < (int)Model.Product.AverageRating)
+                        {
+                            <i class="fas fa-star text-warning fa-lg"></i>
+                        }
+                        else
+                        {
+                            <i class="far fa-star text-warning fa-lg"></i>
+                        }
+                    }
+                    <span class="ms-2">@Model.Product.AverageRating.ToString("0.0") (@Model.Product.ReviewCount відгуків)</span>
+                </div>
+            }
+
+            <div class="mb-4">
+                <h2 class="text-primary">@Model.Product.Price.ToString("N0") грн</h2>
+            </div>
+
+            <div class="mb-4">
+                @if (Model.Product.StockQuantity > 0)
+                {
+                    <span class="badge bg-success fs-6">
+                        <i class="fas fa-check-circle"></i> В наявності (@Model.Product.StockQuantity шт.)
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-danger fs-6">
+                        <i class="fas fa-times-circle"></i> Немає в наявності
+                    </span>
+                }
+            </div>
+
+            @if (User.Identity?.IsAuthenticated == true && Model.Product.StockQuantity > 0)
+            {
+                <div class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <input type="number" class="form-control" id="quantity" value="1" min="1" max="@Model.Product.StockQuantity">
+                        </div>
+                        <div class="col-md-9">
+                            <button class="btn btn-primary btn-lg w-100" onclick="addProductToCart()">
+                                <i class="fas fa-cart-plus"></i> Додати до кошика
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (!User.Identity?.IsAuthenticated == true)
+            {
+                <div class="alert alert-info">
+                    <a asp-controller="Account" asp-action="Login" class="alert-link">Увійдіть</a> щоб додати товар до кошика
+                </div>
+            }
+
+            <div class="card bg-light mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-info-circle"></i> Опис товару</h5>
+                    <p class="card-text">@Model.Product.Description</p>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Product.Specifications))
+            {
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-list"></i> Характеристики</h5>
+                        <div id="specifications"></div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="mb-4"><i class="fas fa-comments"></i> Відгуки покупців (@Model.Product.ReviewCount)</h3>
+
+            @if (Model.CanReview)
+            {
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Залишити відгук</h5>
+                        <form asp-controller="Review" asp-action="Create" method="post">
+                            <input type="hidden" name="ProductId" value="@Model.Product.Id" />
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Оцінка</label>
+                                <div class="rating-input">
+                                    @for (int i = 5; i >= 1; i--)
+                                    {
+                                        <input type="radio" name="Rating" value="@i" id="star@(i)" required>
+                                        <label for="star@(i)"><i class="fas fa-star"></i></label>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Коментар</label>
+                                <textarea class="form-control" name="Comment" rows="4" required minlength="10" maxlength="2000"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Надіслати відгук
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+
+            @if (Model.Reviews.Any())
+            {
+                foreach (var review in Model.Reviews)
+                {
+                    <div class="review-card">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <div class="review-author">@review.User.FirstName @review.User.LastName</div>
+                                <div class="review-rating">
+                                    @for (int i = 0; i < review.Rating; i++)
+                                    {
+                                        <i class="fas fa-star"></i>
+                                    }
+                                    @for (int i = review.Rating; i < 5; i++)
+                                    {
+                                        <i class="far fa-star"></i>
+                                    }
+                                </div>
+                            </div>
+                            <div class="review-date">@review.CreatedAt.ToString("dd.MM.yyyy")</div>
+                        </div>
+                        <p class="mb-2">@review.Comment</p>
+                        
+                        @if (!string.IsNullOrEmpty(review.AdminResponse))
+                        {
+                            <div class="alert alert-info mt-3 mb-0">
+                                <strong><i class="fas fa-reply"></i> Відповідь адміністрації:</strong><br>
+                                @review.AdminResponse
+                                <br><small class="text-muted">@review.AdminResponseDate?.ToString("dd.MM.yyyy")</small>
+                            </div>
+                        }
+
+                        @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                        {
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-danger" onclick="adminFunctions.deleteReview(@review.Id)">
+                                    <i class="fas fa-trash"></i> Видалити
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Поки що немає відгуків про цей товар
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function addProductToCart() {
+            const quantity = parseInt($('#quantity').val());
+            const productId = @Model.Product.Id;
+            
+            addToCart(productId, quantity);
+        }
+
+        // Display specifications
+        @if (!string.IsNullOrEmpty(Model.Product.Specifications))
+        {
+            <text>
+            try {
+                const specs = @Html.Raw(Model.Product.Specifications);
+                let html = '<table class="table table-sm">';
+                for (const [key, value] of Object.entries(specs)) {
+                    html += `<tr><td class="fw-bold">${key}</td><td>${value}</td></tr>`;
+                }
+                html += '</table>';
+                $('#specifications').html(html);
+            } catch (e) {
+                console.error('Error parsing specifications:', e);
+            }
+            </text>
+        }
+    </script>
+
+    <style>
+        .rating-input {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+        }
+        .rating-input input {
+            display: none;
+        }
+        .rating-input label {
+            cursor: pointer;
+            font-size: 2rem;
+            color: #ddd;
+            margin-right: 5px;
+        }
+        .rating-input label:hover,
+        .rating-input label:hover ~ label,
+        .rating-input input:checked ~ label {
+            color: #ffc107;
+        }
+    </style>
+}
