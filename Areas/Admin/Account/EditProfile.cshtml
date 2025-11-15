@@ -1,0 +1,102 @@
+﻿@model WebApplication2.Models.ApplicationUser
+@{
+    ViewData["Title"] = "Редагування профілю";
+}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="user-avatar mb-3 mx-auto"
+                         style="width: 100px; height: 100px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <span class="text-white" style="font-size: 2.5rem; font-weight: bold;">
+                            @Model.FirstName.Substring(0, 1)@Model.LastName.Substring(0, 1)
+                        </span>
+                    </div>
+                    <h5>@Model.FirstName @Model.LastName</h5>
+                    <p class="text-muted">@Model.Email</p>
+                </div>
+            </div>
+
+            <div class="list-group mt-3 shadow-sm">
+                <a asp-action="Profile" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user"></i> Профіль
+                </a>
+                <a asp-action="Orders" class="list-group-item list-group-item-action">
+                    <i class="fas fa-shopping-bag"></i> Мої замовлення
+                </a>
+                <a asp-action="EditProfile" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-edit"></i> Редагувати профіль
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-edit"></i> Редагування профілю</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="EditProfile" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="FirstName" class="form-label"></label>
+                                <input asp-for="FirstName" class="form-control" />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="LastName" class="form-label"></label>
+                                <input asp-for="LastName" class="form-control" />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="PhoneNumber" class="form-label"></label>
+                            <input asp-for="PhoneNumber" class="form-control" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Address" class="form-label"></label>
+                            <textarea asp-for="Address" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email (не можна змінити)</label>
+                            <input type="text" class="form-control" value="@Model.Email" disabled />
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Profile" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Скасувати
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Зберегти зміни
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0"><i class="fas fa-lock"></i> Зміна паролю</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Для зміни паролю зверніться до адміністратора або скористайтесь функцією "Забули пароль" на сторінці входу.</p>
+                    <a asp-action="Login" class="btn btn-outline-primary">
+                        <i class="fas fa-key"></i> Змінити пароль
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>

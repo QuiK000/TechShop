@@ -131,7 +131,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 CategoryId = 1,
                 Brand = "Lenovo",
                 StockQuantity = 25,
-                ImageUrl = "/images/products/laptop2.jpg",
+                ImageUrl = "/images/products/laptop1.jpg",
                 IsAvailable = true,
                 Specifications =
                     "{\"cpu\":\"Intel Core i5-1135G7\",\"ram\":\"8GB DDR4\",\"storage\":\"256GB SSD\",\"display\":\"15.6 FHD\"}"
@@ -145,7 +145,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 CategoryId = 5,
                 Brand = "Logitech",
                 StockQuantity = 50,
-                ImageUrl = "/images/products/mouse1.jpg",
+                ImageUrl = "/images/products/laptop1.jpg",
                 IsAvailable = true,
                 Specifications = "{\"sensor\":\"HERO 25K\",\"dpi\":\"25600\",\"buttons\":\"11\",\"weight\":\"121g\"}"
             }

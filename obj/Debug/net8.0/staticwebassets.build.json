@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "6Wz/FGpPdbHstN3+/OB9nxxBuozRZY8nQ1IAetCJLP0=",
+  "Hash": "Gmxrw3u2tOqhEt2bWiHKXyXrQkSgsoX/ljVOHmqp/Bs=",
   "Source": "WebApplication2",
   "BasePath": "_content/WebApplication2",
   "Mode": "Default",
@@ -110,6 +110,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\favicon.ico"
+    },
+    {
+      "Identity": "D:\\c#project\\WebApplication2\\WebApplication2\\wwwroot\\images\\products\\laptop1.jpg",
+      "SourceId": "WebApplication2",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\c#project\\WebApplication2\\WebApplication2\\wwwroot\\",
+      "BasePath": "_content/WebApplication2",
+      "RelativePath": "images/products/laptop1.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\products\\laptop1.jpg"
     },
     {
       "Identity": "D:\\c#project\\WebApplication2\\WebApplication2\\wwwroot\\js\\site.js",
