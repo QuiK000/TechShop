@@ -40,9 +40,4 @@
     <_ContentIncludedByDefault Remove="Areas\Admin\Views\Account\Orders.cshtml" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Areas\Admin\Views\Dashboard\" />
-    <Folder Include="Areas\Admin\Views\Orders\" />
-  </ItemGroup>
-
 </Project>

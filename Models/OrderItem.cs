@@ -25,7 +25,6 @@ public class OrderItem
     [Required]
     [Column(TypeName = "decimal(18,2)")]
     public decimal Price { get; set; }
-
-    [Column(TypeName = "decimal(18,2)")]
+    
     public decimal TotalPrice => Price * Quantity;
 }

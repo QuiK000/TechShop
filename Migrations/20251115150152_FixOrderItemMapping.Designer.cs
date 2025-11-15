@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApplication2.db;
 
@@ -11,9 +12,11 @@ using WebApplication2.db;
 namespace WebApplication2.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251115150152_FixOrderItemMapping")]
+    partial class FixOrderItemMapping
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -270,42 +273,42 @@ namespace WebApplication2.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 11, 15, 15, 4, 1, 468, DateTimeKind.Utc).AddTicks(4476),
+                            CreatedAt = new DateTime(2025, 11, 15, 15, 1, 49, 150, DateTimeKind.Utc).AddTicks(2761),
                             Description = "Портативні комп'ютери",
                             Name = "Ноутбуки"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 11, 15, 15, 4, 1, 468, DateTimeKind.Utc).AddTicks(4480),
+                            CreatedAt = new DateTime(2025, 11, 15, 15, 1, 49, 150, DateTimeKind.Utc).AddTicks(2773),
                             Description = "Настільні комп'ютери та системні блоки",
                             Name = "Комп'ютери"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 11, 15, 15, 4, 1, 468, DateTimeKind.Utc).AddTicks(4481),
+                            CreatedAt = new DateTime(2025, 11, 15, 15, 1, 49, 150, DateTimeKind.Utc).AddTicks(2774),
                             Description = "Дисплеї та монітори",
                             Name = "Монітори"
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 11, 15, 15, 4, 1, 468, DateTimeKind.Utc).AddTicks(4482),
+                            CreatedAt = new DateTime(2025, 11, 15, 15, 1, 49, 150, DateTimeKind.Utc).AddTicks(2775),
                             Description = "Комплектуючі для ПК",
                             Name = "Комплектуючі"
                         },
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2025, 11, 15, 15, 4, 1, 468, DateTimeKind.Utc).AddTicks(4483),
+                            CreatedAt = new DateTime(2025, 11, 15, 15, 1, 49, 150, DateTimeKind.Utc).AddTicks(2776),
                             Description = "Клавіатури, миші, навушники",
                             Name = "Периферія"
                         },
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2025, 11, 15, 15, 4, 1, 468, DateTimeKind.Utc).AddTicks(4484),
+                            CreatedAt = new DateTime(2025, 11, 15, 15, 1, 49, 150, DateTimeKind.Utc).AddTicks(2777),
                             Description = "Роутери, комутатори",
                             Name = "Мережеве обладнання"
                         });
@@ -481,7 +484,7 @@ namespace WebApplication2.Migrations
                             AverageRating = 0m,
                             Brand = "ASUS",
                             CategoryId = 1,
-                            CreatedAt = new DateTime(2025, 11, 15, 15, 4, 1, 468, DateTimeKind.Utc).AddTicks(4657),
+                            CreatedAt = new DateTime(2025, 11, 15, 15, 1, 49, 150, DateTimeKind.Utc).AddTicks(3172),
                             Description = "Ігровий ноутбук з процесором AMD Ryzen 7 та відеокартою NVIDIA RTX 3060",
                             ImageUrl = "/images/products/laptop1.jpg",
                             IsAvailable = true,
@@ -490,7 +493,7 @@ namespace WebApplication2.Migrations
                             ReviewCount = 0,
                             Specifications = "{\"cpu\":\"AMD Ryzen 7 5800H\",\"ram\":\"16GB DDR4\",\"storage\":\"512GB SSD\",\"gpu\":\"NVIDIA RTX 3060\",\"display\":\"15.6 FHD 144Hz\"}",
                             StockQuantity = 15,
-                            UpdatedAt = new DateTime(2025, 11, 15, 15, 4, 1, 468, DateTimeKind.Utc).AddTicks(4657)
+                            UpdatedAt = new DateTime(2025, 11, 15, 15, 1, 49, 150, DateTimeKind.Utc).AddTicks(3172)
                         },
                         new
                         {
@@ -498,7 +501,7 @@ namespace WebApplication2.Migrations
                             AverageRating = 0m,
                             Brand = "Lenovo",
                             CategoryId = 1,
-                            CreatedAt = new DateTime(2025, 11, 15, 15, 4, 1, 468, DateTimeKind.Utc).AddTicks(4663),
+                            CreatedAt = new DateTime(2025, 11, 15, 15, 1, 49, 150, DateTimeKind.Utc).AddTicks(3182),
                             Description = "Офісний ноутбук для роботи та навчання",
                             ImageUrl = "/images/products/laptop1.jpg",
                             IsAvailable = true,
@@ -507,7 +510,7 @@ namespace WebApplication2.Migrations
                             ReviewCount = 0,
                             Specifications = "{\"cpu\":\"Intel Core i5-1135G7\",\"ram\":\"8GB DDR4\",\"storage\":\"256GB SSD\",\"display\":\"15.6 FHD\"}",
                             StockQuantity = 25,
-                            UpdatedAt = new DateTime(2025, 11, 15, 15, 4, 1, 468, DateTimeKind.Utc).AddTicks(4663)
+                            UpdatedAt = new DateTime(2025, 11, 15, 15, 1, 49, 150, DateTimeKind.Utc).AddTicks(3182)
                         },
                         new
                         {
@@ -515,7 +518,7 @@ namespace WebApplication2.Migrations
                             AverageRating = 0m,
                             Brand = "Logitech",
                             CategoryId = 5,
-                            CreatedAt = new DateTime(2025, 11, 15, 15, 4, 1, 468, DateTimeKind.Utc).AddTicks(4665),
+                            CreatedAt = new DateTime(2025, 11, 15, 15, 1, 49, 150, DateTimeKind.Utc).AddTicks(3184),
                             Description = "Ігрова миша з RGB підсвічуванням",
                             ImageUrl = "/images/products/laptop1.jpg",
                             IsAvailable = true,
@@ -524,7 +527,7 @@ namespace WebApplication2.Migrations
                             ReviewCount = 0,
                             Specifications = "{\"sensor\":\"HERO 25K\",\"dpi\":\"25600\",\"buttons\":\"11\",\"weight\":\"121g\"}",
                             StockQuantity = 50,
-                            UpdatedAt = new DateTime(2025, 11, 15, 15, 4, 1, 468, DateTimeKind.Utc).AddTicks(4666)
+                            UpdatedAt = new DateTime(2025, 11, 15, 15, 1, 49, 150, DateTimeKind.Utc).AddTicks(3184)
                         });
                 });
 

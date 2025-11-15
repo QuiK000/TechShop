@@ -1,0 +1,212 @@
+﻿@{
+    ViewData["Title"] = "Статистика";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    
+    var fromDate = ViewBag.FromDate as DateTime? ?? DateTime.UtcNow.AddMonths(-1);
+    var toDate = ViewBag.ToDate as DateTime? ?? DateTime.UtcNow;
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-chart-line"></i> Статистика продажів</h1>
+    </div>
+
+    <!-- Date Filter -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form asp-action="Statistics" method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Дата від:</label>
+                    <input type="date" name="from" class="form-control" 
+                           value="@fromDate.ToString("yyyy-MM-dd")" max="@DateTime.Today.ToString("yyyy-MM-dd")">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Дата до:</label>
+                    <input type="date" name="to" class="form-control" 
+                           value="@toDate.ToString("yyyy-MM-dd")" max="@DateTime.Today.ToString("yyyy-MM-dd")">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Показати
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Sales Chart -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-area"></i> Динаміка продажів</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="salesChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Products -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-trophy"></i> Топ-10 товарів</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        @if (ViewBag.TopProducts != null)
+                        {
+                            @foreach (var product in ViewBag.TopProducts)
+                            {
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="mb-1">@product.ProductName</h6>
+                                            <small class="text-muted">Продано: @product.QuantitySold шт.</small>
+                                        </div>
+                                        <strong class="text-success">@product.Revenue.ToString("N0") ₴</strong>
+                                    </div>
+                                    <div class="progress" style="height: 5px;">
+                                        <div class="progress-bar bg-success" role="progressbar" 
+                                             style="width: @((product.QuantitySold / (double)ViewBag.TopProducts.First().QuantitySold) * 100)%"></div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Sales -->
+    <div class="row g-4 mt-1">
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-pie-chart"></i> Продажі по категоріях</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Деталі по категоріях</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Категорія</th>
+                                    <th class="text-end">Продажів</th>
+                                    <th class="text-end">Замовлень</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (ViewBag.CategorySales != null)
+                                {
+                                    @foreach (var category in ViewBag.CategorySales)
+                                    {
+                                        <tr>
+                                            <td><strong>@category.CategoryName</strong></td>
+                                            <td class="text-end">@category.TotalSales.ToString("N0") ₴</td>
+                                            <td class="text-end">@category.OrderCount</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Sales Chart
+        const salesData = @Html.Raw(Json.Serialize(ViewBag.SalesData ?? new List<object>()));
+        
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: salesData.map(d => new Date(d.date).toLocaleDateString('uk-UA')),
+                datasets: [{
+                    label: 'Виручка (грн)',
+                    data: salesData.map(d => d.amount),
+                    borderColor: 'rgb(13, 110, 253)',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('uk-UA') + ' ₴';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Category Chart
+        const categoryData = @Html.Raw(Json.Serialize(ViewBag.CategorySales ?? new List<object>()));
+        
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: categoryData.map(c => c.categoryName),
+                datasets: [{
+                    data: categoryData.map(c => c.totalSales),
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(255, 159, 64, 0.8)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed.toLocaleString('uk-UA') + ' ₴';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

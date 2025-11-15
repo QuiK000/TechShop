@@ -76,10 +76,11 @@ app.UseAuthorization();
 
 app.UseSession();
 
-// app.MapControllerRoute(
-//     name: "admin",
-//     pattern: "Admin/{controller=Dashboard}/{action=Index}/{id?}",
-//     defaults: new { area = "Admin" });
+// ✅ ПРАВИЛЬНА МАРШРУТИЗАЦІЯ
+app.MapAreaControllerRoute(
+    name: "admin",
+    areaName: "Admin",
+    pattern: "Admin/{controller=Dashboard}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",

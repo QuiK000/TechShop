@@ -106,7 +106,7 @@ public class StatisticsService : IStatisticsService
                 ProductId = g.Key.ProductId,
                 ProductName = g.Key.Name,
                 QuantitySold = g.Sum(oi => oi.Quantity),
-                Revenue = g.Sum(oi => oi.TotalPrice)
+                Revenue = g.Sum(oi => oi.Price * oi.Quantity) // Обчислюємо на льоту
             })
             .OrderByDescending(p => p.Revenue)
             .Take(count)
