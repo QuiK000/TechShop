@@ -1,0 +1,144 @@
+﻿
+@{
+
+    ViewData
+[
+"Title"
+]
+ 
+=
+ 
+"Контакти"
+;
+
+}
+
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="mb-4 text-center"><i class="fas fa-phone-alt"></i> Зв'яжіться з нами</h1>
+            
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <div class="card text-center h-100 shadow-sm">
+                        <div class="card-body">
+                            <i class="fas fa-map-marker-alt fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Адреса</h5>
+                            <p class="card-text">
+                                м. Хмельницький<br>
+                                вул. Інститутська, 11
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card text-center h-100 shadow-sm">
+                        <div class="card-body">
+                            <i class="fas fa-phone fa-3x text-success mb-3"></i>
+                            <h5 class="card-title">Телефон</h5>
+                            <p class="card-text">
+                                +380 (38) 234-56-78<br>
+                                <small class="text-muted">Пн-Нд 9:00-20:00</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card text-center h-100 shadow-sm">
+                        <div class="card-body">
+                            <i class="fas fa-envelope fa-3x text-danger mb-3"></i>
+                            <h5 class="card-title">Email</h5>
+                            <p class="card-text">
+                                info@techshop.ua<br>
+                                <small class="text-muted">Відповідаємо протягом години</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-comments"></i> Форма зворотного зв'язку</h5>
+                </div>
+                <div class="card-body">
+                    <form id="contactForm">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Ваше ім'я *</label>
+                            <input type="text" class="form-control" id="name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Телефон</label>
+                            <input type="tel" class="form-control" id="phone">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Тема звернення *</label>
+                            <select class="form-select" id="subject" required>
+                                <option value="">Оберіть тему...</option>
+                                <option value="question">Питання про товар</option>
+                                <option value="order">Питання про замовлення</option>
+                                <option value="delivery">Питання про доставку</option>
+                                <option value="complaint">Скарга</option>
+                                <option value="cooperation">Співпраця</option>
+                                <option value="other">Інше</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Повідомлення *</label>
+                            <textarea class="form-control" id="message" rows="5" required></textarea>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane"></i> Надіслати повідомлення
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm bg-light">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-clock"></i> Графік роботи</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Інтернет-магазин:</strong></p>
+                            <p class="text-muted">Цілодобово, 24/7</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Офлайн магазин:</strong></p>
+                            <p class="text-muted mb-0">
+                                Пн-Пт: 9:00 - 20:00<br>
+                                Сб: 10:00 - 18:00<br>
+                                Нд: 10:00 - 16:00
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Тут можна додати AJAX відправку форми
+            showToast('Дякуємо за звернення! Ми зв\'яжемося з вами найближчим часом.', 'success');
+            this.reset();
+        });
+    </script>
+}

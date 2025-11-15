@@ -499,3 +499,4 @@ D:\c#project\WebApplication2\WebApplication2\bin\Debug\net8.0\runtimes\win\lib\n
 D:\c#project\WebApplication2\WebApplication2\obj\Debug\net8.0\WebApplication2.csproj.AssemblyReference.cache
 D:\c#project\WebApplication2\WebApplication2\obj\Debug\net8.0\WebApplication2.MvcApplicationPartsAssemblyInfo.cs
 D:\c#project\WebApplication2\WebApplication2\obj\Debug\net8.0\WebAppli.0DB3FC1A.Up2Date
+D:\c#project\WebApplication2\WebApplication2\obj\Debug\net8.0\WebApplication2.sourcelink.json

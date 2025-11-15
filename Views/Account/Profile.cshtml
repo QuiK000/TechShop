@@ -1,0 +1,85 @@
+﻿@model ApplicationUser
+@{
+
+ViewData
+[
+"Title"
+]
+
+=
+ 
+"Профіль"
+;
+
+}
+
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="user-avatar mb-3 mx-auto"
+                         style="width: 100px; height: 100px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <span class="text-white" style="font-size: 2.5rem; font-weight: bold;">
+                            @Model.FirstName.Substring(0, 1)@Model.LastName.Substring(0, 1)
+                        </span>
+                    </div>
+                    <h5>@Model.FirstName @Model.LastName</h5>
+                    <p class="text-muted">@Model.Email</p>
+                </div>
+            </div>
+
+            <div class="list-group mt-3 shadow-sm">
+                <a asp-action="Profile" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-user"></i> Профіль
+                </a>
+                <a asp-action="Orders" class="list-group-item list-group-item-action">
+                    <i class="fas fa-shopping-bag"></i> Мої замовлення
+                </a>
+                <a asp-action="EditProfile" class="list-group-item list-group-item-action">
+                    <i class="fas fa-edit"></i> Редагувати профіль
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-user-circle"></i> Інформація про профіль</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4"><strong>Ім'я:</strong></div>
+                        <div class="col-md-8">@Model.FirstName</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4"><strong>Прізвище:</strong></div>
+                        <div class="col-md-8">@Model.LastName</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4"><strong>Email:</strong></div>
+                        <div class="col-md-8">@Model.Email</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4"><strong>Телефон:</strong></div>
+                        <div class="col-md-8">@(Model.PhoneNumber ?? "Не вказано")</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4"><strong>Адреса:</strong></div>
+                        <div class="col-md-8">@(Model.Address ?? "Не вказано")</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4"><strong>Дата реєстрації:</strong></div>
+                        <div class="col-md-8">@Model.CreatedAt.ToString("dd.MM.yyyy")</div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a asp-action="EditProfile" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Редагувати профіль
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
