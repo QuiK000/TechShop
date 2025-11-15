@@ -1,0 +1,189 @@
+﻿@model WebApplication2.Models.Product
+@{
+    ViewData["Title"] = "Деталі товару";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-box"></i> Деталі товару</h1>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Редагувати
+            </a>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Назад
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <img src="@(Model.ImageUrl ?? "/images/no-image.jpg")" 
+                     class="card-img-top" 
+                     alt="@Model.Name"
+                     style="max-height: 400px; object-fit: contain; padding: 20px;">
+                <div class="card-body text-center">
+                    @if (Model.IsAvailable)
+                    {
+                        <span class="badge bg-success fs-6">Активний</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary fs-6">Неактивний</span>
+                    }
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Статистика</h5>
+                    <div class="mb-2">
+                        <strong>Рейтинг:</strong>
+                        <div class="mt-1">
+                            @for (int i = 0; i < 5; i++)
+                            {
+                                if (i < (int)Model.AverageRating)
+                                {
+                                    <i class="fas fa-star text-warning"></i>
+                                }
+                                else
+                                {
+                                    <i class="far fa-star text-warning"></i>
+                                }
+                            }
+                            <span class="ms-2">@Model.AverageRating.ToString("0.0")</span>
+                        </div>
+                    </div>
+                    <p><strong>Відгуків:</strong> @Model.ReviewCount</p>
+                    <p><strong>Переглядів:</strong> -</p>
+                    <p class="mb-0"><strong>Продано:</strong> -</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Основна інформація</h5>
+                </div>
+                <div class="card-body">
+                    <h3 class="mb-3">@Model.Name</h3>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Категорія:</strong> @Model.Category.Name</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Бренд:</strong> @Model.Brand</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Ціна:</strong> <span class="text-primary fs-4">@Model.Price.ToString("N0") грн</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>На складі:</strong> 
+                                @if (Model.StockQuantity > 10)
+                                {
+                                    <span class="badge bg-success">@Model.StockQuantity шт.</span>
+                                }
+                                else if (Model.StockQuantity > 0)
+                                {
+                                    <span class="badge bg-warning">@Model.StockQuantity шт.</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Немає на складі</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Опис:</strong>
+                        <p class="mt-2">@Model.Description</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Створено:</strong> @Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Оновлено:</strong> @Model.UpdatedAt.ToString("dd.MM.yyyy HH:mm")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Specifications))
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Характеристики</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="specifications"></div>
+                    </div>
+                </div>
+            }
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">Останні відгуки</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Reviews.Any())
+                    {
+                        @foreach (var review in Model.Reviews.OrderByDescending(r => r.CreatedAt).Take(5))
+                        {
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <strong>@review.User.FirstName @review.User.LastName</strong>
+                                    <small class="text-muted">@review.CreatedAt.ToString("dd.MM.yyyy")</small>
+                                </div>
+                                <div class="mb-1">
+                                    @for (int i = 0; i < review.Rating; i++)
+                                    {
+                                        <i class="fas fa-star text-warning"></i>
+                                    }
+                                </div>
+                                <p class="mb-0">@review.Comment</p>
+                            </div>
+                        }
+                        <a asp-controller="Product" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary">
+                            Переглянути всі відгуки
+                        </a>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Відгуків поки немає</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        @if (!string.IsNullOrEmpty(Model.Specifications))
+        {
+            <text>
+            try {
+                const specs = @Html.Raw(Model.Specifications);
+                let html = '<table class="table table-striped">';
+                for (const [key, value] of Object.entries(specs)) {
+                    html += `<tr><td class="fw-bold">${key}</td><td>${value}</td></tr>`;
+                }
+                html += '</table>';
+                document.getElementById('specifications').innerHTML = html;
+            } catch (e) {
+                document.getElementById('specifications').innerHTML = '<p class="text-danger">Помилка відображення характеристик</p>';
+            }
+            </text>
+        }
+    </script>
+}

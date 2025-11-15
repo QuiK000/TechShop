@@ -336,3 +336,83 @@ footer a:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* Status Badges - якщо їх ще немає */
+.status-badge {
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.status-new {
+  background-color: #cfe2ff;
+  color: #084298;
+}
+
+.status-processing {
+  background-color: #fff3cd;
+  color: #664d03;
+}
+
+.status-shipped {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+
+.status-delivered {
+  background-color: #d1e7dd;
+  color: #0a3622;
+}
+
+.status-cancelled {
+  background-color: #f8d7da;
+  color: #842029;
+}
+
+/* Cart Item Styles */
+.cart-item {
+  border-bottom: 1px solid #dee2e6;
+  padding: 15px 0;
+}
+
+.cart-item:last-child {
+  border-bottom: none;
+}
+
+/* Review Card */
+.review-card {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.review-rating {
+  color: #ffc107;
+  font-size: 1.1rem;
+}
+
+.review-author {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.review-date {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+/* Filter Sidebar */
+.filter-sidebar {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  position: sticky;
+  top: 20px;
+}
+
+.filter-group {
+  margin-bottom: 20px;
+}

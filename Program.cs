@@ -43,6 +43,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IPdfService, PdfService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+builder.Services.AddScoped<IExportService, ExportService>();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -66,6 +67,12 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+var imagesPath = Path.Combine(app.Environment.WebRootPath, "images", "products");
+if (!Directory.Exists(imagesPath))
+{
+    Directory.CreateDirectory(imagesPath);
+}
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -76,7 +83,6 @@ app.UseAuthorization();
 
 app.UseSession();
 
-// ✅ ПРАВИЛЬНА МАРШРУТИЗАЦІЯ
 app.MapAreaControllerRoute(
     name: "admin",
     areaName: "Admin",

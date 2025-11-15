@@ -12,32 +12,29 @@ public class PdfService : IPdfService
         return await Task.Run(() =>
         {
             QuestPDF.Settings.License = LicenseType.Community;
-            // QuestPDF.Settings.EnableDebugging = true; // Можна вимкнути після налагодження
 
             var document = Document.Create(container =>
             {
                 container.Page(page =>
                 {
                     page.Size(PageSizes.A4);
-                    page.Margin(1, Unit.Centimetre); // Ще менші поля
+                    page.Margin(1, Unit.Centimetre);
                     page.PageColor(Colors.White);
-                    page.DefaultTextStyle(x => x.FontSize(8)); // Ще менший базовий шрифт
+                    page.DefaultTextStyle(x => x.FontSize(8));
 
-                    // СПРОЩЕНА ШАПКА - мінімальна висота
                     page.Header()
-                        .Height(40) // Ще менша висота
+                        .Height(40)
                         .Background(Colors.Grey.Lighten3)
-                        .Padding(5) // Мінімальний padding
+                        .Padding(5)
                         .Column(column =>
                         {
-                            column.Spacing(1); // Мінімальні відступи
+                            column.Spacing(1);
                             
                             column.Item().Text("МАГАЗИН КОМП'ЮТЕРНОЇ ТЕХНІКИ")
                                 .FontSize(12).Bold().FontColor(Colors.Blue.Darken2);
                             
-                            // Об'єднуємо все в компактнішу форму
                             column.Item().Text("м. Хмельницький | Тел: +380 (38) 234-56-78")
-                                .FontSize(6); // Дуже малий шрифт
+                                .FontSize(6);
                         });
 
                     // КОНТЕНТ
@@ -45,17 +42,14 @@ public class PdfService : IPdfService
                         .PaddingVertical(5)
                         .Column(column =>
                         {
-                            column.Spacing(5); // Мінімальні відступи
-
-                            // Інформація про замовлення
+                            column.Spacing(5);
                             column.Item().BorderBottom(1).BorderColor(Colors.Grey.Medium).PaddingBottom(3)
                                 .Column(col =>
                                 {
                                     col.Item().Text($"ЧЕК №{order.OrderNumber}").FontSize(10).Bold();
                                     col.Item().Text($"Дата: {order.CreatedAt:dd.MM.yyyy HH:mm} | Статус: {GetStatusText(order.Status)}");
                                 });
-
-                            // Інформація про клієнта
+                            
                             column.Item().Background(Colors.Grey.Lighten4).Padding(5)
                                 .Column(col =>
                                 {
@@ -65,8 +59,7 @@ public class PdfService : IPdfService
                                     col.Item().Text($"Email: {order.CustomerEmail}");
                                     col.Item().Text($"Адреса: {order.DeliveryAddress}");
                                 });
-
-                            // Таблиця товарів
+                            
                             column.Item().Text("ТОВАРИ").Bold().FontSize(8);
                             column.Item().PaddingTop(2).Table(table =>
                             {

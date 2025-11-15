@@ -1,0 +1,100 @@
+﻿@model WebApplication2.Models.Category
+@{
+    ViewData["Title"] = "Видалення категорії";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Підтвердження видалення</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Увага!</strong> Ви дійсно хочете видалити цю категорію?
+                    </div>
+
+                    <div class="mb-4">
+                        <h4><i class="fas fa-folder"></i> @Model.Name</h4>
+                        @if (!string.IsNullOrEmpty(Model.Description))
+                        {
+                            <p class="text-muted">@Model.Description</p>
+                        }
+                        
+                        <dl class="row">
+                            <dt class="col-sm-4">ID:</dt>
+                            <dd class="col-sm-8">@Model.Id</dd>
+
+                            <dt class="col-sm-4">Батьківська категорія:</dt>
+                            <dd class="col-sm-8">
+                                @if (Model.ParentCategory != null)
+                                {
+                                    @Model.ParentCategory.Name
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Немає</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-4">Товарів:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-info">@Model.Products.Count</span>
+                            </dd>
+
+                            <dt class="col-sm-4">Підкатегорій:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-warning">@Model.SubCategories.Count</span>
+                            </dd>
+
+                            <dt class="col-sm-4">Створено:</dt>
+                            <dd class="col-sm-8">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+                        </dl>
+                    </div>
+
+                    @if (Model.Products.Any())
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle"></i>
+                            <strong>Неможливо видалити!</strong> У цій категорії є @Model.Products.Count товар(ів). 
+                            Спочатку видаліть або перемістіть товари в іншу категорію.
+                        </div>
+                    }
+
+                    @if (Model.SubCategories.Any())
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle"></i>
+                            <strong>Неможливо видалити!</strong> У цій категорії є @Model.SubCategories.Count підкатегорій. 
+                            Спочатку видаліть підкатегорії.
+                        </div>
+                    }
+
+                    <form asp-action="Delete" method="post" class="mt-4">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <a asp-action="Index" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times"></i> Скасувати
+                            </a>
+                            @if (!Model.Products.Any() && !Model.SubCategories.Any())
+                            {
+                                <button type="submit" class="btn btn-danger btn-lg">
+                                    <i class="fas fa-trash"></i> Так, видалити категорію
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-danger btn-lg" disabled>
+                                    <i class="fas fa-ban"></i> Видалення заблоковано
+                                </button>
+                            }
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

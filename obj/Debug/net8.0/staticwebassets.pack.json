@@ -17,6 +17,10 @@
       "PackagePath": "staticwebassets\\favicon.ico"
     },
     {
+      "Id": "D:\\c#project\\WebApplication2\\WebApplication2\\wwwroot\\images\\no-image.svg",
+      "PackagePath": "staticwebassets\\images\\no-image.svg"
+    },
+    {
       "Id": "D:\\c#project\\WebApplication2\\WebApplication2\\wwwroot\\images\\products\\laptop1.jpg",
       "PackagePath": "staticwebassets\\images\\products\\laptop1.jpg"
     },

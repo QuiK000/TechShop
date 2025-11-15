@@ -1,0 +1,78 @@
+﻿@model WebApplication2.Models.Category
+@{
+    ViewData["Title"] = "Створити категорію";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-plus-circle"></i> Створити нову категорію</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Назад до списку
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Інформація про категорію</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label"></label>
+                            <input asp-for="Name" class="form-control" placeholder="Наприклад: Ноутбуки" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label"></label>
+                            <textarea asp-for="Description" class="form-control" rows="3" 
+                                      placeholder="Короткий опис категорії"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ParentCategoryId" class="form-label">Батьківська категорія (необов'язково)</label>
+                            <select asp-for="ParentCategoryId" class="form-select" asp-items="ViewBag.ParentCategories">
+                                <option value="">Немає (основна категорія)</option>
+                            </select>
+                            <small class="form-text text-muted">
+                                Залиште пустим для створення основної категорії
+                            </small>
+                            <span asp-validation-for="ParentCategoryId" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Скасувати
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Створити категорію
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mt-3 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-info-circle"></i> Підказки</h5>
+                    <ul class="small mb-0">
+                        <li>Назва категорії має бути короткою та зрозумілою</li>
+                        <li>Основні категорії відображаються в головному меню сайту</li>
+                        <li>Підкатегорії допомагають структурувати товари</li>
+                        <li>Опис необов'язковий, але допомагає користувачам</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
