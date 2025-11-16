@@ -25,10 +25,6 @@
       "PackagePath": "staticwebassets\\images\\no-image.svg"
     },
     {
-      "Id": "D:\\c#project\\WebApplication2\\WebApplication2\\wwwroot\\images\\products\\laptop1.jpg",
-      "PackagePath": "staticwebassets\\images\\products\\laptop1.jpg"
-    },
-    {
       "Id": "D:\\c#project\\WebApplication2\\WebApplication2\\wwwroot\\images\\products\\laptop2.jpg",
       "PackagePath": "staticwebassets\\images\\products\\laptop2.jpg"
     },

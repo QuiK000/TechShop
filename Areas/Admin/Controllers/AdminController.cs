@@ -393,7 +393,7 @@ public class AdminController : Controller
                 .Select(g => new CategorySalesDto
                 {
                     CategoryName = g.Key,
-                    TotalSales = g.Sum(oi => oi.TotalPrice),
+                    TotalSales = g.Sum(oi => oi.Price * oi.Quantity),
                     OrderCount = g.Select(oi => oi.OrderId).Distinct().Count()
                 })
                 .OrderByDescending(c => c.TotalSales)
