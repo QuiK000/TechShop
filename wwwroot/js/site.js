@@ -221,32 +221,40 @@ $(document).ready(function() {
     });
 });
 
-// Admin functions
 if (typeof adminFunctions === 'undefined') {
     window.adminFunctions = {};
 }
 
 // Update order status
 adminFunctions.updateOrderStatus = function(orderId, status) {
-    confirmAction('Змінити статус замовлення?', function() {
-        $.ajax({
-            url: '/Admin/Orders/UpdateStatus',
-            method: 'POST',
-            data: { orderId: orderId, status: status },
-            success: function(response) {
-                if (response.success) {
-                    showToast('Статус оновлено!', 'success');
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1000);
-                } else {
-                    showToast(response.message || 'Помилка при оновленні статусу', 'danger');
-                }
-            },
-            error: function() {
-                showToast('Помилка з\'єднання з сервером', 'danger');
+    if (!confirm('Змінити статус замовлення?')) {
+        return;
+    }
+
+    $.ajax({
+        url: '/Admin/Orders/UpdateStatus',
+        method: 'POST',
+        data: {
+            orderId: orderId,
+            status: status
+        },
+        headers: {
+            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+        },
+        success: function(response) {
+            if (response.success) {
+                showToast('Статус оновлено!', 'success');
+                setTimeout(function() {
+                    location.reload();
+                }, 1000);
+            } else {
+                showToast(response.message || 'Помилка при оновленні статусу', 'danger');
             }
-        });
+        },
+        error: function(xhr, status, error) {
+            console.error('Error:', error);
+            showToast('Помилка з\'єднання з сервером', 'danger');
+        }
     });
 };
 
