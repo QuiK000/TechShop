@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "iwB4dpjMXppRQUuy/TZ8Gmxvfa+LZwUWcZEIizyo4aQ=",
+  "Hash": "KWg8nvul5zpJFQmMQBSAGt28EZAniSwkNrdzU784A1E=",
   "Source": "WebApplication2",
   "BasePath": "_content/WebApplication2",
   "Mode": "Default",
@@ -53,6 +53,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "D:\\c#project\\WebApplication2\\WebApplication2\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\WebApplication2.bundle.scp.css"
+    },
+    {
+      "Identity": "D:\\c#project\\WebApplication2\\WebApplication2\\wwwroot\\css\\admin-custom.css",
+      "SourceId": "WebApplication2",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\c#project\\WebApplication2\\WebApplication2\\wwwroot\\",
+      "BasePath": "_content/WebApplication2",
+      "RelativePath": "css/admin-custom.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\admin-custom.css"
     },
     {
       "Identity": "D:\\c#project\\WebApplication2\\WebApplication2\\wwwroot\\css\\admin.css",

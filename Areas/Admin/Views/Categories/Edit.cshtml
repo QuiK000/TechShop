@@ -1,0 +1,78 @@
+﻿@using WebApplication2.Models
+@model WebApplication2.Models.Category
+@{
+    ViewData["Title"] = Model?.Id > 0 ? "Редагувати категорію" : "Додати категорію";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var isEdit = Model?.Id > 0;
+}
+
+<div class="page-header mb-4">
+    <h1>@ViewData["Title"]</h1>
+    <p class="text-muted">@(isEdit ? "Оновіть дані категорії" : "Створіть нову категорію товарів")</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="table-card">
+            <form asp-action="@(isEdit ? "Edit" : "Create")" method="post">
+                @if (isEdit)
+                {
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="CreatedAt" />
+                }
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label">Назва категорії *</label>
+                    <input asp-for="Name" class="form-control" placeholder="Наприклад: Ноутбуки" required />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label">Опис</label>
+                    <textarea asp-for="Description" class="form-control" rows="3" 
+                              placeholder="Короткий опис категорії"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ParentCategoryId" class="form-label">Батьківська категорія</label>
+                    <select asp-for="ParentCategoryId" class="form-select">
+                        <option value="">Немає (головна категорія)</option>
+                        @foreach (var cat in ViewBag.ParentCategories as List<Category>)
+                        {
+                            <option value="@cat.Id">@cat.Name</option>
+                        }
+                    </select>
+                    <small class="text-muted">Залиште пустим для створення головної категорії</small>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> @(isEdit ? "Зберегти" : "Створити")
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Скасувати
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="table-card">
+            <h5><i class="fas fa-info-circle"></i> Підказки</h5>
+            <ul class="small mb-0">
+                <li>Назва категорії має бути короткою та зрозумілою</li>
+                <li>Використовуйте батьківські категорії для створення ієрархії</li>
+                <li>Приклад структури: Електроніка → Комп'ютери → Ноутбуки</li>
+                <li>Опис допоможе користувачам швидше знайти потрібні товари</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

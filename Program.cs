@@ -86,7 +86,7 @@ app.UseSession();
 app.MapAreaControllerRoute(
     name: "admin",
     areaName: "Admin",
-    pattern: "Admin/{controller=Dashboard}/{action=Index}/{id?}");
+    pattern: "Admin/{controller=Admin}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",

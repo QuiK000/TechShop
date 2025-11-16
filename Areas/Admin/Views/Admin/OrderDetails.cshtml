@@ -1,0 +1,299 @@
+﻿@using WebApplication2.Models
+@model WebApplication2.Models.Order
+@{
+    ViewData["Title"] = $"Замовлення {Model.OrderNumber}";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Замовлення @Model.OrderNumber</h1>
+            <p class="text-muted">Детальна інформація про замовлення</p>
+        </div>
+        <div>
+            <a asp-action="Orders" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Назад
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Main Info -->
+    <div class="col-lg-8">
+        <!-- Order Status -->
+        <div class="table-card mb-4">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h5>Статус замовлення</h5>
+                    @switch (Model.Status)
+                    {
+                        case OrderStatus.New:
+                            <span class="badge badge-new fs-6">Нове замовлення</span>
+                            break;
+                        case OrderStatus.Processing:
+                            <span class="badge badge-processing fs-6">В обробці</span>
+                            break;
+                        case OrderStatus.Shipped:
+                            <span class="badge badge-shipped fs-6">Відправлено</span>
+                            break;
+                        case OrderStatus.Delivered:
+                            <span class="badge badge-delivered fs-6">Доставлено</span>
+                            break;
+                        case OrderStatus.Cancelled:
+                            <span class="badge badge-cancelled fs-6">Скасовано</span>
+                            break;
+                    }
+                </div>
+                <select class="form-select w-auto" id="statusSelect" style="min-width: 200px;">
+                    <option value="0" selected="@(Model.Status == OrderStatus.New)">Нове</option>
+                    <option value="1" selected="@(Model.Status == OrderStatus.Processing)">В обробці</option>
+                    <option value="2" selected="@(Model.Status == OrderStatus.Shipped)">Відправлено</option>
+                    <option value="3" selected="@(Model.Status == OrderStatus.Delivered)">Доставлено</option>
+                    <option value="4" selected="@(Model.Status == OrderStatus.Cancelled)">Скасовано</option>
+                </select>
+            </div>
+            
+            <div class="row text-muted small">
+                <div class="col-md-6">
+                    <i class="fas fa-calendar"></i> Створено: @Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                </div>
+                <div class="col-md-6">
+                    <i class="fas fa-clock"></i> Оновлено: @Model.UpdatedAt.ToString("dd.MM.yyyy HH:mm")
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="table-card mb-4">
+            <h5 class="mb-3">Склад замовлення</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Товар</th>
+                            <th class="text-center">Кількість</th>
+                            <th class="text-end">Ціна</th>
+                            <th class="text-end">Сума</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrderItems)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="@(item.Product?.ImageUrl ?? "/images/no-image.jpg")" 
+                                             class="rounded me-2" 
+                                             style="width: 50px; height: 50px; object-fit: cover;">
+                                        <div>
+                                            <div><strong>@item.ProductName</strong></div>
+                                            <small class="text-muted">ID: @item.ProductId</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">@item.Quantity</td>
+                                <td class="text-end">@item.Price.ToString("N0") ₴</td>
+                                <td class="text-end"><strong>@item.TotalPrice.ToString("N0") ₴</strong></td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        @{
+                            var subtotal = Model.TotalAmount - Model.DeliveryPrice;
+                        }
+                        <tr>
+                            <td colspan="3" class="text-end"><strong>Вартість товарів:</strong></td>
+                            <td class="text-end">@subtotal.ToString("N0") ₴</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-end"><strong>Доставка:</strong></td>
+                            <td class="text-end">@Model.DeliveryPrice.ToString("N0") ₴</td>
+                        </tr>
+                        <tr class="table-primary">
+                            <td colspan="3" class="text-end"><strong>ВСЬОГО:</strong></td>
+                            <td class="text-end"><h5 class="mb-0">@Model.TotalAmount.ToString("N0") ₴</h5></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- Delivery & Payment -->
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="table-card">
+                    <h5><i class="fas fa-truck"></i> Доставка</h5>
+                    <div class="mb-2">
+                        <small class="text-muted">Спосіб доставки:</small>
+                        <div><strong>@Model.DeliveryMethod</strong></div>
+                    </div>
+                    <div>
+                        <small class="text-muted">Адреса:</small>
+                        <div>@Model.DeliveryAddress</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="table-card">
+                    <h5><i class="fas fa-credit-card"></i> Оплата</h5>
+                    <div>
+                        <small class="text-muted">Спосіб оплати:</small>
+                        <div><strong>@Model.PaymentMethod</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Notes))
+        {
+            <div class="table-card mt-4">
+                <h5><i class="fas fa-comment"></i> Коментар клієнта</h5>
+                <p class="mb-0">@Model.Notes</p>
+            </div>
+        }
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Customer Info -->
+        <div class="table-card mb-4">
+            <h5><i class="fas fa-user"></i> Інформація про клієнта</h5>
+            <div class="mb-3">
+                <small class="text-muted">ПІБ:</small>
+                <div><strong>@Model.CustomerName</strong></div>
+            </div>
+            <div class="mb-3">
+                <small class="text-muted">Телефон:</small>
+                <div>
+                    <a href="tel:@Model.CustomerPhone">@Model.CustomerPhone</a>
+                </div>
+            </div>
+            <div class="mb-3">
+                <small class="text-muted">Email:</small>
+                <div>
+                    <a href="mailto:@Model.CustomerEmail">@Model.CustomerEmail</a>
+                </div>
+            </div>
+            @if (Model.User != null)
+            {
+                <div>
+                    <small class="text-muted">Користувач:</small>
+                    <div>
+                        <span class="badge bg-primary">Зареєстрований</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div>
+                    <span class="badge bg-secondary">Гість</span>
+                </div>
+            }
+        </div>
+
+        <!-- Actions -->
+        <div class="table-card">
+            <h5><i class="fas fa-tasks"></i> Дії</h5>
+            <div class="d-grid gap-2">
+                <button onclick="printOrder()" class="btn btn-outline-primary">
+                    <i class="fas fa-print"></i> Друк
+                </button>
+                <a asp-controller="Order" asp-action="DownloadReceipt" asp-route-id="@Model.Id" 
+                   class="btn btn-outline-secondary" target="_blank">
+                    <i class="fas fa-download"></i> Завантажити чек
+                </a>
+                @if (Model.Status != OrderStatus.Cancelled)
+                {
+                    <button onclick="cancelOrder(@Model.Id)" class="btn btn-outline-danger">
+                        <i class="fas fa-times-circle"></i> Скасувати замовлення
+                    </button>
+                }
+            </div>
+        </div>
+
+        @if (Model.User != null)
+        {
+            <div class="table-card mt-4">
+                <h5><i class="fas fa-history"></i> Історія клієнта</h5>
+                <p class="text-muted small mb-0">
+                    Замовлень: <strong>@Model.User.Orders.Count</strong><br>
+                    Зареєстрований: @Model.User.CreatedAt.ToString("dd.MM.yyyy")
+                </p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Change order status
+        $('#statusSelect').on('change', function() {
+            const newStatus = $(this).val();
+            const orderId = @Model.Id;
+
+            if (!confirm('Змінити статус замовлення?')) {
+                location.reload();
+                return;
+            }
+
+            $.ajax({
+                url: '/Admin/Admin/UpdateOrderStatus',
+                method: 'POST',
+                data: {
+                    id: orderId,
+                    status: newStatus
+                },
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showToast('Статус оновлено!', 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showToast(response.message, 'danger');
+                        location.reload();
+                    }
+                },
+                error: function() {
+                    showToast('Помилка з\'єднання', 'danger');
+                    location.reload();
+                }
+            });
+        });
+
+        // Print order
+        function printOrder() {
+            window.print();
+        }
+
+        // Cancel order
+        function cancelOrder(orderId) {
+            if (!confirm('Скасувати замовлення? Цю дію не можна відмінити.')) {
+                return;
+            }
+
+            $.ajax({
+                url: '/Admin/Admin/UpdateOrderStatus',
+                method: 'POST',
+                data: {
+                    id: orderId,
+                    status: 4 // Cancelled
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showToast('Замовлення скасовано', 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showToast(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showToast('Помилка з\'єднання', 'danger');
+                }
+            });
+        }
+    </script>
+}

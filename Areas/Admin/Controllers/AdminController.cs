@@ -58,7 +58,7 @@ public class AdminController : Controller
                     ProductId = g.Key,
                     ProductName = g.First().ProductName,
                     TotalSold = g.Sum(oi => oi.Quantity),
-                    Revenue = g.Sum(oi => oi.TotalPrice)
+                    Revenue = g.Sum(oi => oi.Price * oi.Quantity) // ✅ Виправлено
                 })
                 .OrderByDescending(p => p.Revenue)
                 .Take(5)

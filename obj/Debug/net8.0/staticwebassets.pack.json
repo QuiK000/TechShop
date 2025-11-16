@@ -5,6 +5,10 @@
       "PackagePath": "staticwebassets\\WebApplication2.bundle.scp.css"
     },
     {
+      "Id": "D:\\c#project\\WebApplication2\\WebApplication2\\wwwroot\\css\\admin-custom.css",
+      "PackagePath": "staticwebassets\\css\\admin-custom.css"
+    },
+    {
       "Id": "D:\\c#project\\WebApplication2\\WebApplication2\\wwwroot\\css\\admin.css",
       "PackagePath": "staticwebassets\\css\\admin.css"
     },
