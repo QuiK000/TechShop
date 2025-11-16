@@ -1,5 +1,22 @@
 ﻿// Site-wide JavaScript functions
 
+// CSRF Token helper
+function getAntiForgeryToken() {
+    return $('input[name="__RequestVerificationToken"]').val();
+}
+
+// Add CSRF token to all AJAX requests
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (settings.type === 'POST' || settings.type === 'PUT' || settings.type === 'DELETE') {
+            var token = getAntiForgeryToken();
+            if (token) {
+                xhr.setRequestHeader("RequestVerificationToken", token);
+            }
+        }
+    }
+});
+
 // Format number as currency
 function formatCurrency(amount) {
     return new Intl.NumberFormat('uk-UA', {
@@ -26,8 +43,12 @@ function hideLoading(element) {
 
 // Show toast notification
 function showToast(message, type = 'success') {
+    const bgClass = type === 'success' ? 'bg-success' :
+        type === 'danger' ? 'bg-danger' :
+            type === 'warning' ? 'bg-warning' : 'bg-info';
+
     const toastHtml = `
-        <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
                 <div class="toast-body">
                     ${message}
@@ -77,7 +98,8 @@ window.addToCart = function(productId, quantity = 1) {
                 showToast(response.message || 'Помилка при додаванні товару', 'danger');
             }
         },
-        error: function() {
+        error: function(xhr) {
+            console.error('Cart error:', xhr);
             showToast('Помилка з\'єднання з сервером', 'danger');
         }
     });
@@ -96,7 +118,8 @@ window.updateCartQuantity = function(cartItemId, quantity) {
                 showToast(response.message || 'Помилка при оновленні кількості', 'danger');
             }
         },
-        error: function() {
+        error: function(xhr) {
+            console.error('Update error:', xhr);
             showToast('Помилка з\'єднання з сервером', 'danger');
         }
     });
@@ -117,7 +140,8 @@ window.removeFromCart = function(cartItemId) {
                     showToast(response.message || 'Помилка при видаленні товару', 'danger');
                 }
             },
-            error: function() {
+            error: function(xhr) {
+                console.error('Remove error:', xhr);
                 showToast('Помилка з\'єднання з сервером', 'danger');
             }
         });
@@ -128,17 +152,185 @@ window.removeFromCart = function(cartItemId) {
 function previewImage(input, previewElement) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
-
         reader.onload = function(e) {
             $(previewElement).attr('src', e.target.result);
             $(previewElement).removeClass('d-none');
         };
-
         reader.readAsDataURL(input.files[0]);
     }
 }
 
-// Initialize tooltips
+// Admin functions namespace
+window.adminFunctions = {
+    // Update order status
+    updateOrderStatus: function(orderId, status) {
+        if (!confirm('Змінити статус замовлення?')) {
+            return;
+        }
+
+        $.ajax({
+            url: '/Admin/Admin/UpdateOrderStatus',
+            method: 'POST',
+            data: {
+                id: orderId,
+                status: status
+            },
+            success: function(response) {
+                if (response.success) {
+                    showToast('Статус оновлено!', 'success');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    showToast(response.message || 'Помилка при оновленні статусу', 'danger');
+                }
+            },
+            error: function(xhr) {
+                console.error('Status update error:', xhr);
+                showToast('Помилка з\'єднання з сервером', 'danger');
+            }
+        });
+    },
+
+    // Delete review
+    deleteReview: function(reviewId) {
+        confirmAction('Видалити відгук?', function() {
+            $.ajax({
+                url: '/Review/Delete',
+                method: 'POST',
+                data: { id: reviewId },
+                success: function(response) {
+                    if (response.success) {
+                        showToast('Відгук видалено!', 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showToast(response.message || 'Помилка при видаленні', 'danger');
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Delete review error:', xhr);
+                    showToast('Помилка з\'єднання з сервером', 'danger');
+                }
+            });
+        });
+    },
+
+    // Lock/Unlock user
+    toggleUserLock: function(userId, lock) {
+        const action = lock ? 'заблокувати' : 'розблокувати';
+        const url = lock ? '/Admin/Admin/LockUser' : '/Admin/Admin/UnlockUser';
+
+        confirmAction(`Дійсно ${action} користувача?`, function() {
+            $.ajax({
+                url: url,
+                method: 'POST',
+                data: { id: userId },
+                success: function(response) {
+                    if (response.success) {
+                        showToast(response.message, 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showToast(response.message || 'Помилка операції', 'danger');
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Lock/unlock error:', xhr);
+                    showToast('Помилка з\'єднання з сервером', 'danger');
+                }
+            });
+        });
+    },
+
+    // Delete product
+    deleteProduct: function(productId) {
+        confirmAction('Видалити товар?', function() {
+            $.ajax({
+                url: '/Admin/Admin/DeleteProduct',
+                method: 'POST',
+                data: { id: productId },
+                success: function(response) {
+                    if (response.success) {
+                        showToast('Товар видалено!', 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showToast(response.message || 'Помилка при видаленні', 'danger');
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Delete product error:', xhr);
+                    showToast('Помилка з\'єднання з сервером', 'danger');
+                }
+            });
+        });
+    },
+
+    // Delete category
+    deleteCategory: function(categoryId) {
+        confirmAction('Видалити категорію?', function() {
+            $.ajax({
+                url: '/Admin/Categories/Delete',
+                method: 'POST',
+                data: { id: categoryId },
+                success: function(response) {
+                    if (response.success) {
+                        showToast(response.message, 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showToast(response.message || 'Помилка при видаленні', 'danger');
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Delete category error:', xhr);
+                    showToast('Помилка з\'єднання з сервером', 'danger');
+                }
+            });
+        });
+    },
+
+    // Bulk actions
+    bulkAction: function(action, ids) {
+        if (!ids || ids.length === 0) {
+            showToast('Не обрано товарів', 'warning');
+            return;
+        }
+
+        const actionText = action === 'delete' ? 'видалити' :
+            action === 'activate' ? 'активувати' : 'деактивувати';
+
+        confirmAction(`${actionText} ${ids.length} товарів?`, function() {
+            $.ajax({
+                url: '/Admin/Admin/BulkAction',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ action: action, ids: ids }),
+                success: function(response) {
+                    if (response.success) {
+                        showToast(response.message, 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showToast(response.message || 'Помилка операції', 'danger');
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Bulk action error:', xhr);
+                    showToast('Помилка з\'єднання з сервером', 'danger');
+                }
+            });
+        });
+    }
+};
+
+// Initialize on document ready
 $(document).ready(function() {
     // Bootstrap tooltips
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -148,7 +340,7 @@ $(document).ready(function() {
 
     // Auto-hide alerts after 5 seconds
     setTimeout(function() {
-        $('.alert').fadeOut('slow');
+        $('.alert:not(.alert-permanent)').fadeOut('slow');
     }, 5000);
 
     // Smooth scroll for anchor links
@@ -170,7 +362,6 @@ $(document).ready(function() {
         const quantity = btn.data('quantity') || 1;
 
         showLoading(btn);
-
         addToCart(productId, quantity).always(function() {
             hideLoading(btn);
         });
@@ -198,11 +389,6 @@ $(document).ready(function() {
         }
     });
 
-    // Price range filter
-    $('#priceRange').on('input', function() {
-        $('#priceValue').text($(this).val());
-    });
-
     // Product rating display
     $('.product-rating').each(function() {
         const rating = parseFloat($(this).data('rating'));
@@ -219,90 +405,50 @@ $(document).ready(function() {
             }
         }
     });
-});
 
-if (typeof adminFunctions === 'undefined') {
-    window.adminFunctions = {};
-}
-
-// Update order status
-adminFunctions.updateOrderStatus = function(orderId, status) {
-    if (!confirm('Змінити статус замовлення?')) {
-        return;
-    }
-
-    $.ajax({
-        url: '/Admin/Orders/UpdateStatus',
-        method: 'POST',
-        data: {
-            orderId: orderId,
-            status: status
-        },
-        headers: {
-            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-        },
-        success: function(response) {
-            if (response.success) {
-                showToast('Статус оновлено!', 'success');
-                setTimeout(function() {
-                    location.reload();
-                }, 1000);
-            } else {
-                showToast(response.message || 'Помилка при оновленні статусу', 'danger');
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('Error:', error);
-            showToast('Помилка з\'єднання з сервером', 'danger');
-        }
-    });
-};
-
-// Delete review
-adminFunctions.deleteReview = function(reviewId) {
-    confirmAction('Видалити відгук?', function() {
-        $.ajax({
-            url: '/Review/Delete',
-            method: 'POST',
-            data: { id: reviewId },
-            success: function(response) {
-                if (response.success) {
-                    showToast('Відгук видалено!', 'success');
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1000);
-                } else {
-                    showToast(response.message || 'Помилка при видаленні', 'danger');
-                }
-            },
-            error: function() {
-                showToast('Помилка з\'єднання з сервером', 'danger');
-            }
+    // Debug: Log AJAX errors
+    $(document).ajaxError(function(event, xhr, settings, error) {
+        console.error('AJAX Error:', {
+            url: settings.url,
+            status: xhr.status,
+            statusText: xhr.statusText,
+            responseText: xhr.responseText,
+            error: error
         });
     });
+});
+
+// Global functions for inline onclick handlers
+window.deleteProduct = function(id) {
+    adminFunctions.deleteProduct(id);
 };
 
-// Lock/Unlock user
-adminFunctions.toggleUserLock = function(userId, lock) {
-    const action = lock ? 'заблокувати' : 'розблокувати';
-    const url = lock ? '/Admin/Users/LockUser' : '/Admin/Users/UnlockUser';
+window.deleteCategory = function(id) {
+    adminFunctions.deleteCategory(id);
+};
 
-    confirmAction(`Дійсно ${action} користувача?`, function() {
+window.bulkAction = function(action) {
+    const ids = [];
+    $('.product-checkbox:checked').each(function() {
+        ids.push(parseInt($(this).val()));
+    });
+    adminFunctions.bulkAction(action, ids);
+};
+
+window.clearCart = function() {
+    confirmAction('Очистити кошик?', function() {
         $.ajax({
-            url: url,
+            url: '/Cart/ClearCart',
             method: 'POST',
-            data: { id: userId },
             success: function(response) {
                 if (response.success) {
-                    showToast(response.message, 'success');
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1000);
+                    location.reload();
                 } else {
-                    showToast(response.message || 'Помилка операції', 'danger');
+                    showToast(response.message || 'Помилка', 'danger');
                 }
             },
-            error: function() {
+            error: function(xhr) {
+                console.error('Clear cart error:', xhr);
                 showToast('Помилка з\'єднання з сервером', 'danger');
             }
         });
