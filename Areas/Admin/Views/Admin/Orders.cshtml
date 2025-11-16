@@ -1,19 +1,176 @@
-﻿@page
-@model WebApplication2.Areas.Admin.Views.Admin.Orders
-
+﻿@using WebApplication2.Models
+@model List<Order>
 @{
-    Layout = null;
+    ViewData["Title"] = "Замовлення";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
-<!DOCTYPE html>
+<div class="table-card">
+    <h4 class="mb-4"><i class="fas fa-shopping-cart"></i> Замовлення (@Model.Count)</h4>
 
-<html>
-<head>
-    <title></title>
-</head>
-<body>
-<div>
-    
+    <!-- Фільтри -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="">Всі статуси</option>
+                <option value="0" selected="@(ViewBag.Status == OrderStatus.New)">Нові</option>
+                <option value="1" selected="@(ViewBag.Status == OrderStatus.Processing)">В обробці</option>
+                <option value="2" selected="@(ViewBag.Status == OrderStatus.Shipped)">Відправлено</option>
+                <option value="3" selected="@(ViewBag.Status == OrderStatus.Delivered)">Доставлено</option>
+                <option value="4" selected="@(ViewBag.Status == OrderStatus.Cancelled)">Скасовано</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="date" name="from" class="form-control" 
+                   value="@ViewBag.From?.ToString("yyyy-MM-dd")">
+        </div>
+        <div class="col-md-3">
+            <input type="date" name="to" class="form-control" 
+                   value="@ViewBag.To?.ToString("yyyy-MM-dd")">
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-filter"></i> Фільтрувати
+            </button>
+        </div>
+    </form>
+
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="border rounded p-3 text-center">
+                <h4 class="text-primary">@Model.Count(o => o.Status == OrderStatus.New)</h4>
+                <small class="text-muted">Нові</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="border rounded p-3 text-center">
+                <h4 class="text-warning">@Model.Count(o => o.Status == OrderStatus.Processing)</h4>
+                <small class="text-muted">В обробці</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="border rounded p-3 text-center">
+                <h4 class="text-info">@Model.Count(o => o.Status == OrderStatus.Shipped)</h4>
+                <small class="text-muted">Відправлено</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="border rounded p-3 text-center">
+                <h4 class="text-success">@Model.Count(o => o.Status == OrderStatus.Delivered)</h4>
+                <small class="text-muted">Доставлено</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Таблиця -->
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>№ Замовлення</th>
+                    <th>Клієнт</th>
+                    <th>Контакт</th>
+                    <th>Товарів</th>
+                    <th>Сума</th>
+                    <th>Статус</th>
+                    <th>Дата</th>
+                    <th>Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model)
+                {
+                    <tr>
+                        <td><strong>@order.OrderNumber</strong></td>
+                        <td>
+                            @order.CustomerName
+                            @if (order.User != null)
+                            {
+                                <br><small class="text-muted">@order.User.Email</small>
+                            }
+                        </td>
+                        <td>
+                            <small>@order.CustomerPhone</small>
+                        </td>
+                        <td>@order.OrderItems.Count шт.</td>
+                        <td><strong>@order.TotalAmount.ToString("N0") ₴</strong></td>
+                        <td>
+                            <select class="form-select form-select-sm status-select" 
+                                    data-order-id="@order.Id"
+                                    style="width: 140px;">
+                                <option value="0" selected="@(order.Status == OrderStatus.New)">Нове</option>
+                                <option value="1" selected="@(order.Status == OrderStatus.Processing)">В обробці</option>
+                                <option value="2" selected="@(order.Status == OrderStatus.Shipped)">Відправлено</option>
+                                <option value="3" selected="@(order.Status == OrderStatus.Delivered)">Доставлено</option>
+                                <option value="4" selected="@(order.Status == OrderStatus.Cancelled)">Скасовано</option>
+                            </select>
+                        </td>
+                        <td>
+                            @order.CreatedAt.ToString("dd.MM.yyyy")
+                            <br>
+                            <small class="text-muted">@order.CreatedAt.ToString("HH:mm")</small>
+                        </td>
+                        <td>
+                            <a href="/Admin/OrderDetails/@order.Id" class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Пагінація -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center">
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                        <a class="page-link" href="?page=@i&status=@ViewBag.Status&from=@ViewBag.From&to=@ViewBag.To">
+                            @i
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
 </div>
-</body>
-</html>
+
+@section Scripts {
+    <script>
+        $('.status-select').change(function() {
+            const orderId = $(this).data('order-id');
+            const status = $(this).val();
+            const select = $(this);
+            
+            if (!confirm('Змінити статус замовлення?')) {
+                // Повернути попереднє значення
+                location.reload();
+                return;
+            }
+
+            $.post('/Admin/UpdateOrderStatus', { id: orderId, status: status }, function(response) {
+                if (response.success) {
+                    // Змінити колір select
+                    select.removeClass('form-select-sm').addClass('form-select-sm');
+                    
+                    // Показати повідомлення
+                    const toast = $('<div class="alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-3" style="z-index: 9999;">')
+                        .html('<i class="fas fa-check"></i> Статус оновлено! <button type="button" class="btn-close" data-bs-dismiss="alert"></button>');
+                    $('body').append(toast);
+                    setTimeout(() => toast.remove(), 3000);
+                } else {
+                    alert(response.message);
+                    location.reload();
+                }
+            }).fail(function() {
+                alert('Помилка з\'єднання');
+                location.reload();
+            });
+        });
+    </script>
+}

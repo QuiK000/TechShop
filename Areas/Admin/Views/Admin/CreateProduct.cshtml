@@ -1,19 +1,178 @@
-﻿@page
-@model WebApplication2.Areas.Admin.Views.Admin.CreateProduct
-
+﻿@using WebApplication2.Models
+@model WebApplication2.Models.Product
 @{
-    Layout = null;
+    ViewData["Title"] = Model?.Id > 0 ? "Редагувати товар" : "Додати товар";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var isEdit = Model?.Id > 0;
 }
 
-<!DOCTYPE html>
+<div class="row">
+    <div class="col-lg-8">
+        <form method="post" enctype="multipart/form-data">
+            @if (isEdit)
+            {
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="ImageUrl" />
+                <input type="hidden" asp-for="CreatedAt" />
+                <input type="hidden" asp-for="AverageRating" />
+                <input type="hidden" asp-for="ReviewCount" />
+            }
 
-<html>
-<head>
-    <title></title>
-</head>
-<body>
-<div>
-    
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <!-- Основна інформація -->
+            <div class="table-card mb-3">
+                <h5 class="mb-3">Основна інформація</h5>
+
+                <div class="mb-3">
+                    <label class="form-label">Назва товару *</label>
+                    <input asp-for="Name" class="form-control" required>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Опис *</label>
+                    <textarea asp-for="Description" class="form-control" rows="4" required></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Категорія *</label>
+                        <select asp-for="CategoryId" class="form-select" required>
+                            <option value="">Оберіть категорію...</option>
+                            @foreach (var cat in ViewBag.Categories as List<Category>)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        </select>
+                        <span asp-validation-for="CategoryId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Бренд</label>
+                        <input asp-for="Brand" class="form-control" list="brands">
+                        <datalist id="brands">
+                            <option value="ASUS">
+                            <option value="Lenovo">
+                            <option value="HP">
+                            <option value="Dell">
+                            <option value="Acer">
+                            <option value="Apple">
+                            <option value="MSI">
+                            <option value="Logitech">
+                        </datalist>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Ціна (грн) *</label>
+                        <input asp-for="Price" type="number" step="0.01" class="form-control" required>
+                        <span asp-validation-for="Price" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Кількість на складі *</label>
+                        <input asp-for="StockQuantity" type="number" class="form-control" required>
+                        <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input asp-for="IsAvailable" class="form-check-input" type="checkbox">
+                        <label asp-for="IsAvailable" class="form-check-label">
+                            Доступний для продажу
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Зображення -->
+            <div class="table-card mb-3">
+                <h5 class="mb-3">Зображення товару</h5>
+
+                @if (isEdit && !string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <div class="mb-3">
+                        <img src="@Model.ImageUrl" class="img-thumbnail" style="max-width: 200px;">
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <label class="form-label">Завантажити @(isEdit ? "нове " : "")зображення</label>
+                    <input type="file" name="image" class="form-control" accept="image/*" id="imageInput">
+                    <small class="text-muted">Рекомендований розмір: 800x800px</small>
+                </div>
+
+                <div id="imagePreview" class="d-none">
+                    <img id="preview" src="#" alt="Preview" class="img-thumbnail" style="max-width: 200px;">
+                </div>
+            </div>
+
+            <!-- Характеристики -->
+            <div class="table-card mb-3">
+                <h5 class="mb-3">Характеристики (JSON)</h5>
+
+                <div class="mb-3">
+                    <textarea asp-for="Specifications" class="form-control" rows="5" 
+                              placeholder='{"cpu":"Intel Core i5","ram":"8GB","storage":"256GB SSD"}'></textarea>
+                    <small class="text-muted">Формат JSON: {"ключ":"значення"}</small>
+                    <span asp-validation-for="Specifications" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Кнопки -->
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> @(isEdit ? "Зберегти" : "Створити")
+                </button>
+                <a href="/Admin/Admin/Products" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Скасувати
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Підказки -->
+        <div class="table-card">
+            <h5 class="mb-3"><i class="fas fa-info-circle"></i> Підказки</h5>
+            <ul class="small mb-0">
+                <li>Назва має бути зрозумілою та описовою</li>
+                <li>Додайте якісне фото товару</li>
+                <li>Вкажіть правильну категорію</li>
+                <li>Характеристики у форматі JSON покращують SEO</li>
+                <li>Оновлюйте залишки товарів вчасно</li>
+            </ul>
+        </div>
+
+        @if (isEdit)
+        {
+            <div class="table-card mt-3">
+                <h5 class="mb-3">Інформація</h5>
+                <p><strong>ID:</strong> @Model.Id</p>
+                <p><strong>Створено:</strong> @Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
+                <p><strong>Рейтинг:</strong> @Model.AverageRating.ToString("0.0")</p>
+                <p><strong>Відгуків:</strong> @Model.ReviewCount</p>
+            </div>
+        }
+    </div>
 </div>
-</body>
-</html>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+<script>
+    document.getElementById('imageInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('preview').src = event.target.result;
+                document.getElementById('imagePreview').classList.remove('d-none');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
