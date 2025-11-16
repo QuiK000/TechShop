@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace WebApplication2.Areas.Admin.Views.Categories;
+namespace WebApplication2.Areas.Admin.Views.Admin;
 
-public class Edit : PageModel
+public class Index : PageModel
 {
     public void OnGet()
     {
