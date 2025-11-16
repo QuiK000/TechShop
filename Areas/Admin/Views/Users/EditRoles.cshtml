@@ -1,0 +1,110 @@
+﻿@model WebApplication2.Areas.Admin.Controllers.EditRolesViewModel
+@{
+    ViewData["Title"] = "Редагування ролей";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Редагування ролей</h1>
+            <p class="text-muted">@Model.UserName (@Model.UserEmail)</p>
+        </div>
+        <div>
+            <a asp-action="Details" asp-route-id="@Model.UserId" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Назад
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="table-card">
+            <form asp-action="EditRoles" method="post">
+                <input type="hidden" asp-for="UserId" />
+                <input type="hidden" asp-for="UserName" />
+                <input type="hidden" asp-for="UserEmail" />
+                
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="mb-4">
+                    <h5><i class="fas fa-user-tag"></i> Оберіть ролі користувача</h5>
+                    <p class="text-muted small">Виберіть одну або декілька ролей для користувача</p>
+                </div>
+
+                @for (int i = 0; i < Model.AllRoles.Count; i++)
+                {
+                    <input type="hidden" asp-for="AllRoles[i].RoleName" />
+                    
+                    <div class="card mb-3 @(Model.AllRoles[i].IsSelected ? "border-primary" : "")">
+                        <div class="card-body">
+                            <div class="form-check">
+                                <input type="checkbox" 
+                                       asp-for="AllRoles[i].IsSelected" 
+                                       class="form-check-input" 
+                                       id="role_@i">
+                                <label class="form-check-label" for="role_@i">
+                                    <strong>@Model.AllRoles[i].RoleName</strong>
+                                    
+                                    @switch (Model.AllRoles[i].RoleName)
+                                    {
+                                        case "Admin":
+                                            <br><small class="text-muted">Повний доступ до всіх функцій системи</small>
+                                            break;
+                                        case "Manager":
+                                            <br><small class="text-muted">Управління товарами та замовленнями</small>
+                                            break;
+                                        case "User":
+                                            <br><small class="text-muted">Звичайний користувач магазину</small>
+                                            break;
+                                    }
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Увага!</strong> Зміна ролей може вплинути на доступ користувача до системи.
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save"></i> Зберегти зміни
+                    </button>
+                    <a asp-action="Details" asp-route-id="@Model.UserId" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i> Скасувати
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Довідка -->
+        <div class="table-card mt-3 bg-light">
+            <h6><i class="fas fa-info-circle"></i> Опис ролей</h6>
+            <ul class="small mb-0">
+                <li><strong>Admin</strong> - Адміністратор з повним доступом</li>
+                <li><strong>Manager</strong> - Менеджер магазину (товари, замовлення)</li>
+                <li><strong>User</strong> - Звичайний користувач</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        // Підсвітка вибраних карток
+        $('.form-check-input').on('change', function() {
+            const card = $(this).closest('.card');
+            if ($(this).is(':checked')) {
+                card.addClass('border-primary');
+            } else {
+                card.removeClass('border-primary');
+            }
+        });
+    </script>
+}

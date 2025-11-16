@@ -346,6 +346,10 @@ public class AdminController : Controller
         var user = await _userManager.FindByIdAsync(id);
         if (user == null)
             return Json(new { success = false, message = "Користувача не знайдено" });
+        
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser?.Id == id)
+            return Json(new { success = false, message = "Ви не можете заблокувати себе" });
 
         await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100));
         return Json(new { success = true, message = "Користувача заблоковано" });
