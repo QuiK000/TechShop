@@ -1,14 +1,14 @@
 ﻿@model WebApplication2.Areas.Admin.Controllers.EditRolesViewModel
 @{
-    ViewData["Title"] = "Редагування ролей";
-    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+ViewData["Title"] = "Редагування ролей";
+Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
 <div class="page-header mb-4">
     <div class="d-flex justify-content-between align-items-center">
         <div>
-            <h1>Редагування ролей</h1>
-            <p class="text-muted">@Model.UserName (@Model.UserEmail)</p>
+            <h1><i class="fas fa-user-tag"></i> Редагування ролей</h1>
+            <p class="text-muted mb-0">@Model.UserName <span class="badge bg-secondary">@Model.UserEmail</span></p>
         </div>
         <div>
             <a asp-action="Details" asp-route-id="@Model.UserId" class="btn btn-secondary">
@@ -18,93 +18,341 @@
     </div>
 </div>
 
-<div class="row justify-content-center">
-    <div class="col-lg-6">
+<div class="row">
+    <div class="col-lg-8">
         <div class="table-card">
-            <form asp-action="EditRoles" method="post">
+            <form asp-action="EditRoles" method="post" id="rolesForm">
                 <input type="hidden" asp-for="UserId" />
                 <input type="hidden" asp-for="UserName" />
                 <input type="hidden" asp-for="UserEmail" />
-                
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div asp-validation-summary="All" class="alert alert-danger d-none" id="validationSummary"></div>
 
                 <div class="mb-4">
-                    <h5><i class="fas fa-user-tag"></i> Оберіть ролі користувача</h5>
-                    <p class="text-muted small">Виберіть одну або декілька ролей для користувача</p>
+                    <h5 class="mb-3"><i class="fas fa-shield-alt"></i> Оберіть ролі користувача</h5>
+                    <p class="text-muted">Виберіть одну або декілька ролей. Користувач матиме доступ згідно з вибраними ролями.</p>
                 </div>
 
-                @for (int i = 0; i < Model.AllRoles.Count; i++)
-                {
-                    <input type="hidden" asp-for="AllRoles[i].RoleName" />
-                    
-                    <div class="card mb-3 @(Model.AllRoles[i].IsSelected ? "border-primary" : "")">
-                        <div class="card-body">
+                <div class="row g-3">
+                    @for (int i = 0; i < Model.AllRoles.Count; i++)
+                    {
+                    <div class="col-md-6">
+                        <input type="hidden" asp-for="AllRoles[i].RoleName" />
+
+                        <div class="role-card @(Model.AllRoles[i].IsSelected ? "role-card-selected" : "")" data-role="@Model.AllRoles[i].RoleName">
                             <div class="form-check">
-                                <input type="checkbox" 
-                                       asp-for="AllRoles[i].IsSelected" 
-                                       class="form-check-input" 
-                                       id="role_@i">
-                                <label class="form-check-label" for="role_@i">
-                                    <strong>@Model.AllRoles[i].RoleName</strong>
-                                    
-                                    @switch (Model.AllRoles[i].RoleName)
-                                    {
-                                        case "Admin":
-                                            <br><small class="text-muted">Повний доступ до всіх функцій системи</small>
+                                <input type="checkbox"
+                                       asp-for="AllRoles[i].IsSelected"
+                                       class="form-check-input role-checkbox"
+                                       id="role_@i"
+                                       data-index="@i">
+                                <label class="form-check-label w-100" for="role_@i">
+                                    <div class="d-flex align-items-start">
+                                        <div class="role-icon me-3">
+                                            @switch (Model.AllRoles[i].RoleName)
+                                            {
+                                            case "Admin":
+                                            <i class="fas fa-crown"></i>
                                             break;
-                                        case "Manager":
-                                            <br><small class="text-muted">Управління товарами та замовленнями</small>
+                                            case "Manager":
+                                            <i class="fas fa-user-tie"></i>
                                             break;
-                                        case "User":
-                                            <br><small class="text-muted">Звичайний користувач магазину</small>
+                                            case "User":
+                                            <i class="fas fa-user"></i>
                                             break;
-                                    }
+                                            default:
+                                            <i class="fas fa-user-tag"></i>
+                                            break;
+                                            }
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">@Model.AllRoles[i].RoleName</h6>
+                                            @switch (Model.AllRoles[i].RoleName)
+                                            {
+                                            case "Admin":
+                                            <p class="text-muted small mb-0">
+                                                <i class="fas fa-check-circle text-danger"></i> Повний доступ до всіх функцій системи<br>
+                                                <i class="fas fa-check-circle text-danger"></i> Управління користувачами та ролями<br>
+                                                <i class="fas fa-check-circle text-danger"></i> Доступ до аналітики та звітів
+                                            </p>
+                                            break;
+                                            case "Manager":
+                                            <p class="text-muted small mb-0">
+                                                <i class="fas fa-check-circle text-warning"></i> Управління товарами та категоріями<br>
+                                                <i class="fas fa-check-circle text-warning"></i> Обробка замовлень<br>
+                                                <i class="fas fa-check-circle text-warning"></i> Перегляд статистики
+                                            </p>
+                                            break;
+                                            case "User":
+                                            <p class="text-muted small mb-0">
+                                                <i class="fas fa-check-circle text-info"></i> Перегляд та покупка товарів<br>
+                                                <i class="fas fa-check-circle text-info"></i> Управління особистими замовленнями<br>
+                                                <i class="fas fa-check-circle text-info"></i> Залишення відгуків
+                                            </p>
+                                            break;
+                                            }
+                                        </div>
+                                    </div>
                                 </label>
                             </div>
                         </div>
                     </div>
-                }
-
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Увага!</strong> Зміна ролей може вплинути на доступ користувача до системи.
+                    }
                 </div>
 
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        <i class="fas fa-save"></i> Зберегти зміни
-                    </button>
-                    <a asp-action="Details" asp-route-id="@Model.UserId" class="btn btn-outline-secondary">
-                        <i class="fas fa-times"></i> Скасувати
-                    </a>
+                <div class="alert alert-warning mt-4">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Увага!</strong> Зміна ролей негайно вплине на доступ користувача до системи.
+                    Користувач може потребувати повторного входу для застосування змін.
+                </div>
+
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong>Порада:</strong> Рекомендується надавати тільки необхідні ролі. Надмірні права доступу можуть становити ризик безпеки.
+                </div>
+
+                <div class="mt-4 pt-3 border-top">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div id="selectedRolesInfo" class="text-muted small">
+                                <i class="fas fa-info-circle"></i>
+                                <span id="selectedCount">@Model.AllRoles.Count(r => r.IsSelected)</span>
+                                <span id="rolesText">@(Model.AllRoles.Count(r => r.IsSelected) == 1 ? "роль обрана" : Model.AllRoles.Count(r => r.IsSelected) < 5 ? "ролі обрано" : "ролей обрано")</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a asp-action="Details" asp-route-id="@Model.UserId" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Скасувати
+                                </a>
+                                <button type="submit" class="btn btn-primary" id="submitBtn">
+                                    <i class="fas fa-save"></i> Зберегти зміни
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>
+    </div>
 
+    <!-- Sidebar -->
+    <div class="col-lg-4">
         <!-- Довідка -->
-        <div class="table-card mt-3 bg-light">
-            <h6><i class="fas fa-info-circle"></i> Опис ролей</h6>
-            <ul class="small mb-0">
-                <li><strong>Admin</strong> - Адміністратор з повним доступом</li>
-                <li><strong>Manager</strong> - Менеджер магазину (товари, замовлення)</li>
-                <li><strong>User</strong> - Звичайний користувач</li>
-            </ul>
+        <div class="table-card mb-3">
+            <h6><i class="fas fa-book"></i> Опис ролей</h6>
+            <hr>
+            <div class="role-description">
+                <div class="mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-crown text-danger me-2"></i>
+                        <strong>Admin</strong>
+                    </div>
+                    <p class="small text-muted mb-0">Адміністратор системи з необмеженим доступом до всіх функцій.</p>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-user-tie text-warning me-2"></i>
+                        <strong>Manager</strong>
+                    </div>
+                    <p class="small text-muted mb-0">Менеджер магазину з доступом до товарів та замовлень.</p>
+                </div>
+
+                <div>
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-user text-info me-2"></i>
+                        <strong>User</strong>
+                    </div>
+                    <p class="small text-muted mb-0">Звичайний користувач з базовими можливостями покупця.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Поточні ролі -->
+        <div class="table-card bg-light">
+            <h6><i class="fas fa-info-circle"></i> Поточні ролі</h6>
+            <hr>
+            <div id="currentRolesList">
+                @{
+                var selectedRoles = Model.AllRoles.Where(r => r.IsSelected).ToList();
+                }
+                @if (selectedRoles.Any())
+                {
+                foreach (var role in selectedRoles)
+                {
+                <span class="badge bg-primary me-1 mb-1">@role.RoleName</span>
+                }
+                }
+                else
+                {
+                <p class="text-muted small mb-0">Ролі не обрано</p>
+                }
+            </div>
+        </div>
+
+        <!-- Користувач -->
+        <div class="table-card mt-3">
+            <h6><i class="fas fa-user"></i> Користувач</h6>
+            <hr>
+            <p class="mb-1"><strong>Ім'я:</strong> @Model.UserName</p>
+            <p class="mb-0"><strong>Email:</strong><br><small>@Model.UserEmail</small></p>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-    
-    <script>
-        // Підсвітка вибраних карток
-        $('.form-check-input').on('change', function() {
-            const card = $(this).closest('.card');
-            if ($(this).is(':checked')) {
-                card.addClass('border-primary');
-            } else {
-                card.removeClass('border-primary');
+<partial name="_ValidationScriptsPartial" />
+
+<style>
+    .role-card {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        background: white;
+    }
+
+    .role-card:hover {
+        border-color: #0d6efd;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .role-card-selected {
+        border-color: #0d6efd;
+        background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+
+    .role-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        background: #f8f9fa;
+    }
+
+    .role-card-selected .role-icon {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: white;
+    }
+
+    .role-card .form-check-label {
+        cursor: pointer;
+    }
+
+    .role-card .form-check-input {
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-top: 0.5rem;
+    }
+
+    .role-description {
+        font-size: 0.875rem;
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        // Обробка кліку на картку ролі
+        $('.role-card').on('click', function(e) {
+            if (!$(e.target).is('input[type="checkbox"]')) {
+                const checkbox = $(this).find('.role-checkbox');
+                checkbox.prop('checked', !checkbox.prop('checked')).trigger('change');
             }
         });
-    </script>
+
+        // Обробка зміни чекбокса
+        $('.role-checkbox').on('change', function() {
+            const card = $(this).closest('.role-card');
+            const roleName = card.data('role');
+
+            if ($(this).is(':checked')) {
+                card.addClass('role-card-selected');
+            } else {
+                card.removeClass('role-card-selected');
+            }
+
+            updateRolesInfo();
+        });
+
+        // Оновлення інформації про обрані ролі
+        function updateRolesInfo() {
+            const selectedCount = $('.role-checkbox:checked').length;
+            $('#selectedCount').text(selectedCount);
+
+            let rolesText = 'ролей обрано';
+            if (selectedCount === 1) {
+                rolesText = 'роль обрана';
+            } else if (selectedCount >= 2 && selectedCount <= 4) {
+                rolesText = 'ролі обрано';
+            }
+            $('#rolesText').text(rolesText);
+
+            // Оновити список поточних ролей
+            updateCurrentRolesList();
+        }
+
+        // Оновити список поточних ролей
+        function updateCurrentRolesList() {
+            const selectedRoles = [];
+            $('.role-checkbox:checked').each(function() {
+                const roleName = $(this).closest('.role-card').data('role');
+                selectedRoles.push(roleName);
+            });
+
+            let html = '';
+            if (selectedRoles.length > 0) {
+                selectedRoles.forEach(role => {
+                    html += `<span class="badge bg-primary me-1 mb-1">${role}</span>`;
+                });
+            } else {
+                html = '<p class="text-muted small mb-0">Ролі не обрано</p>';
+            }
+
+            $('#currentRolesList').html(html);
+        }
+
+        // Валідація перед відправкою
+        $('#rolesForm').on('submit', function(e) {
+            const selectedCount = $('.role-checkbox:checked').length;
+
+            if (selectedCount === 0) {
+                e.preventDefault();
+                showToast('Оберіть хоча б одну роль для користувача', 'warning');
+                return false;
+            }
+
+            // Підтвердження зміни ролей Admin
+            const adminCheckbox = $('.role-card[data-role="Admin"] .role-checkbox');
+            const wasAdmin = adminCheckbox.data('original') === true;
+            const isAdmin = adminCheckbox.is(':checked');
+
+            if (wasAdmin && !isAdmin) {
+                if (!confirm('Ви впевнені, що хочете забрати роль Admin? Користувач втратить адміністративний доступ.')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+
+            if (!wasAdmin && isAdmin) {
+                if (!confirm('Ви впевнені, що хочете надати роль Admin? Користувач отримає повний доступ до системи.')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+
+            // Показати індикатор завантаження
+            $('#submitBtn').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Збереження...');
+        });
+
+        // Зберегти початковий стан Admin чекбокса
+        $('.role-card[data-role="Admin"] .role-checkbox').data('original', $('.role-card[data-role="Admin"] .role-checkbox').is(':checked'));
+    });
+</script>
 }

@@ -104,7 +104,7 @@ public class UsersController : Controller
     [HttpGet]
     public async Task<IActionResult> EditRoles(string id)
     {
-        if (id == null)
+        if (string.IsNullOrEmpty(id))
         {
             return NotFound();
         }
@@ -112,7 +112,8 @@ public class UsersController : Controller
         var user = await _userManager.FindByIdAsync(id);
         if (user == null)
         {
-            return NotFound();
+            TempData["Error"] = "Користувача не знайдено";
+            return RedirectToAction(nameof(Index));
         }
 
         var userRoles = await _userManager.GetRolesAsync(user);
@@ -122,7 +123,7 @@ public class UsersController : Controller
         {
             UserId = user.Id,
             UserName = $"{user.FirstName} {user.LastName}",
-            UserEmail = user.Email,
+            UserEmail = user.Email ?? "",
             AllRoles = allRoles.Select(r => new RoleSelectionViewModel
             {
                 RoleName = r.Name!,
@@ -140,24 +141,46 @@ public class UsersController : Controller
     {
         if (!ModelState.IsValid)
         {
+            // Перезавантажити список ролей
+            var allRoles = await _roleManager.Roles.ToListAsync();
+            model.AllRoles = allRoles.Select(r => new RoleSelectionViewModel
+            {
+                RoleName = r.Name!,
+                IsSelected = model.AllRoles.FirstOrDefault(ar => ar.RoleName == r.Name)?.IsSelected ?? false
+            }).ToList();
             return View(model);
         }
 
         var user = await _userManager.FindByIdAsync(model.UserId);
         if (user == null)
         {
-            return NotFound();
+            TempData["Error"] = "Користувача не знайдено";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Перевірка: не можна змінити свої власні ролі
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser?.Id == model.UserId)
+        {
+            TempData["Error"] = "Ви не можете змінити свої власні ролі";
+            return RedirectToAction(nameof(Details), new { id = user.Id });
         }
 
         var userRoles = await _userManager.GetRolesAsync(user);
         var selectedRoles = model.AllRoles.Where(r => r.IsSelected).Select(r => r.RoleName).ToList();
 
         // Видалити всі поточні ролі
-        var removeResult = await _userManager.RemoveFromRolesAsync(user, userRoles);
-        if (!removeResult.Succeeded)
+        if (userRoles.Any())
         {
-            ModelState.AddModelError("", "Не вдалося видалити поточні ролі");
-            return View(model);
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, userRoles);
+            if (!removeResult.Succeeded)
+            {
+                foreach (var error in removeResult.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+                return View(model);
+            }
         }
 
         // Додати нові ролі
@@ -166,12 +189,15 @@ public class UsersController : Controller
             var addResult = await _userManager.AddToRolesAsync(user, selectedRoles);
             if (!addResult.Succeeded)
             {
-                ModelState.AddModelError("", "Не вдалося додати нові ролі");
+                foreach (var error in addResult.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
                 return View(model);
             }
         }
 
-        TempData["Success"] = "Ролі користувача оновлено!";
+        TempData["Success"] = $"Ролі користувача {user.FirstName} {user.LastName} успішно оновлено!";
         return RedirectToAction(nameof(Details), new { id = user.Id });
     }
 
@@ -255,6 +281,74 @@ public class UsersController : Controller
 
         return Json(new { success = false, message = "Помилка видалення" });
     }
+
+    // GET: Admin/Users/GetUserRoles
+    [HttpGet]
+    public async Task<IActionResult> GetUserRoles(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return Json(new List<string>());
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        return Json(roles);
+    }
+
+    // POST: Admin/Users/QuickUpdateRoles
+    [HttpPost]
+    public async Task<IActionResult> QuickUpdateRoles([FromBody] QuickUpdateRolesRequest request)
+    {
+        if (string.IsNullOrEmpty(request.UserId) || request.Roles == null)
+        {
+            return Json(new { success = false, message = "Невірні дані" });
+        }
+
+        var user = await _userManager.FindByIdAsync(request.UserId);
+        if (user == null)
+        {
+            return Json(new { success = false, message = "Користувача не знайдено" });
+        }
+
+        // Перевірка: не можна змінити свої власні ролі
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser?.Id == request.UserId)
+        {
+            return Json(new { success = false, message = "Ви не можете змінити свої власні ролі" });
+        }
+
+        // Перевірка валідності ролей
+        var validRoles = new[] { "Admin", "Manager", "User" };
+        var invalidRoles = request.Roles.Where(r => !validRoles.Contains(r)).ToList();
+        if (invalidRoles.Any())
+        {
+            return Json(new { success = false, message = $"Невірні ролі: {string.Join(", ", invalidRoles)}" });
+        }
+
+        // Видалити всі поточні ролі
+        var currentRoles = await _userManager.GetRolesAsync(user);
+        if (currentRoles.Any())
+        {
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            if (!removeResult.Succeeded)
+            {
+                return Json(new { success = false, message = "Помилка видалення поточних ролей" });
+            }
+        }
+
+        // Додати нові ролі
+        if (request.Roles.Any())
+        {
+            var addResult = await _userManager.AddToRolesAsync(user, request.Roles);
+            if (!addResult.Succeeded)
+            {
+                return Json(new { success = false, message = "Помилка додавання нових ролей" });
+            }
+        }
+
+        return Json(new { success = true, message = "Ролі успішно оновлено!" });
+    }
 }
 
 // ViewModels
@@ -286,4 +380,10 @@ public class RoleSelectionViewModel
 {
     public string RoleName { get; set; } = string.Empty;
     public bool IsSelected { get; set; }
+}
+
+public class QuickUpdateRolesRequest
+{
+    public string UserId { get; set; } = string.Empty;
+    public List<string> Roles { get; set; } = new();
 }

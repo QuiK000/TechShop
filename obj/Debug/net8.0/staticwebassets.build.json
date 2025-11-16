@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "ZJ6EkIlHk4oAyEkds9suqgQrWVvfT3HF3MQ8srLgrHM=",
+  "Hash": "KWg8nvul5zpJFQmMQBSAGt28EZAniSwkNrdzU784A1E=",
   "Source": "WebApplication2",
   "BasePath": "_content/WebApplication2",
   "Mode": "Default",
@@ -148,6 +148,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\no-image.svg"
+    },
+    {
+      "Identity": "D:\\c#project\\WebApplication2\\WebApplication2\\wwwroot\\images\\products\\laptop1.jpg",
+      "SourceId": "WebApplication2",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\c#project\\WebApplication2\\WebApplication2\\wwwroot\\",
+      "BasePath": "_content/WebApplication2",
+      "RelativePath": "images/products/laptop1.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\products\\laptop1.jpg"
     },
     {
       "Identity": "D:\\c#project\\WebApplication2\\WebApplication2\\wwwroot\\images\\products\\laptop2.jpg",

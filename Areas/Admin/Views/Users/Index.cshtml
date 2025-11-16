@@ -17,7 +17,7 @@
     <!-- Пошук -->
     <form method="get" class="row g-3 mb-4">
         <div class="col-md-8">
-            <input type="text" name="search" class="form-control" 
+            <input type="text" name="search" class="form-control"
                    value="@ViewBag.Search" placeholder="Пошук за ім'ям, прізвищем або email...">
         </div>
         <div class="col-md-4">
@@ -59,107 +59,113 @@
     <div class="table-responsive">
         <table class="table table-hover">
             <thead>
-                <tr>
-                    <th>Користувач</th>
-                    <th>Email</th>
-                    <th>Телефон</th>
-                    <th>Ролі</th>
-                    <th>Замовлень</th>
-                    <th>Дата реєстрації</th>
-                    <th>Статус</th>
-                    <th>Дії</th>
-                </tr>
+            <tr>
+                <th>Користувач</th>
+                <th>Email</th>
+                <th>Телефон</th>
+                <th>Ролі</th>
+                <th>Замовлень</th>
+                <th>Дата реєстрації</th>
+                <th>Статус</th>
+                <th>Дії</th>
+            </tr>
             </thead>
             <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="user-avatar me-2" style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
-                                    @item.User.FirstName.Substring(0, 1)@item.User.LastName.Substring(0, 1)
-                                </div>
-                                <div>
-                                    <strong>@item.User.FirstName @item.User.LastName</strong>
-                                </div>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="user-avatar me-2"
+                                 style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                                @item.User.FirstName.Substring(0, 1)@item.User.LastName.Substring(0, 1)
                             </div>
-                        </td>
-                        <td>@item.User.Email</td>
-                        <td>@(item.User.PhoneNumber ?? "—")</td>
-                        <td>
-                            @foreach (var role in item.Roles)
+                            <div>
+                                <strong>@item.User.FirstName @item.User.LastName</strong>
+                            </div>
+                        </div>
+                    </td>
+                    <td>@item.User.Email</td>
+                    <td>@(item.User.PhoneNumber ?? "—")</td>
+                    <td>
+                        @foreach (var role in item.Roles)
+                        {
+                            @if (role == "Admin")
                             {
-                                @if (role == "Admin")
-                                {
-                                    <span class="badge bg-danger me-1">@role</span>
-                                }
-                                else if (role == "Manager")
-                                {
-                                    <span class="badge bg-warning me-1">@role</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary me-1">@role</span>
-                                }
+                                <span class="badge bg-danger me-1">@role</span>
                             }
-                            @if (!item.Roles.Any())
+                            else if (role == "Manager")
                             {
-                                <span class="text-muted">—</span>
-                            }
-                        </td>
-                        <td>
-                            @if (item.OrderCount > 0)
-                            {
-                                <span class="badge bg-success">@item.OrderCount</span>
+                                <span class="badge bg-warning me-1">@role</span>
                             }
                             else
                             {
-                                <span class="text-muted">0</span>
+                                <span class="badge bg-secondary me-1">@role</span>
                             }
-                        </td>
-                        <td>@item.User.CreatedAt.ToString("dd.MM.yyyy")</td>
-                        <td>
+                        }
+                        @if (!item.Roles.Any())
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                    </td>
+                    <td>
+                        @if (item.OrderCount > 0)
+                        {
+                            <span class="badge bg-success">@item.OrderCount</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">0</span>
+                        }
+                    </td>
+                    <td>@item.User.CreatedAt.ToString("dd.MM.yyyy")</td>
+                    <td>
+                        @if (item.IsLocked)
+                        {
+                            <span class="badge bg-danger">Заблоковано</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Активний</span>
+                        }
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <a asp-area="Admin"
+                               asp-controller="Users"
+                               asp-action="Details"
+                               asp-route-id="@item.User.Id"
+                               class="btn btn-sm btn-outline-primary"
+                               title="Деталі">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <button
+                                onclick="quickRoleChange('@item.User.Id', '@item.User.FirstName @item.User.LastName')"
+                                class="btn btn-sm btn-outline-warning" title="Швидка зміна ролей">
+                                <i class="fas fa-bolt"></i>
+                            </button>
                             @if (item.IsLocked)
                             {
-                                <span class="badge bg-danger">Заблоковано</span>
+                                <button onclick="unlockUser('@item.User.Id')"
+                                        class="btn btn-sm btn-outline-success" title="Розблокувати">
+                                    <i class="fas fa-unlock"></i>
+                                </button>
                             }
                             else
                             {
-                                <span class="badge bg-success">Активний</span>
-                            }
-                        </td>
-                        <td>
-                            <div class="btn-group">
-                                <a asp-action="Details" asp-route-id="@item.User.Id" 
-                                   class="btn btn-sm btn-outline-primary" title="Деталі">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a asp-action="EditRoles" asp-route-id="@item.User.Id" 
-                                   class="btn btn-sm btn-outline-warning" title="Ролі">
-                                    <i class="fas fa-user-tag"></i>
-                                </a>
-                                @if (item.IsLocked)
-                                {
-                                    <button onclick="unlockUser('@item.User.Id')" 
-                                            class="btn btn-sm btn-outline-success" title="Розблокувати">
-                                        <i class="fas fa-unlock"></i>
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button onclick="lockUser('@item.User.Id')" 
-                                            class="btn btn-sm btn-outline-warning" title="Заблокувати">
-                                        <i class="fas fa-lock"></i>
-                                    </button>
-                                }
-                                <button onclick="deleteUser('@item.User.Id')" 
-                                        class="btn btn-sm btn-outline-danger" title="Видалити">
-                                    <i class="fas fa-trash"></i>
+                                <button onclick="lockUser('@item.User.Id')"
+                                        class="btn btn-sm btn-outline-warning" title="Заблокувати">
+                                    <i class="fas fa-lock"></i>
                                 </button>
-                            </div>
-                        </td>
-                    </tr>
-                }
+                            }
+                            <button onclick="deleteUser('@item.User.Id')"
+                                    class="btn btn-sm btn-outline-danger" title="Видалити">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
             </tbody>
         </table>
     </div>
@@ -188,8 +194,8 @@
             $.ajax({
                 url: '/Admin/Users/Lock',
                 method: 'POST',
-                data: { id: userId },
-                success: function(response) {
+                data: {id: userId},
+                success: function (response) {
                     if (response.success) {
                         showToast(response.message, 'success');
                         setTimeout(() => location.reload(), 1000);
@@ -197,7 +203,7 @@
                         showToast(response.message, 'danger');
                     }
                 },
-                error: function() {
+                error: function () {
                     showToast('Помилка з\'єднання', 'danger');
                 }
             });
@@ -209,8 +215,8 @@
             $.ajax({
                 url: '/Admin/Users/Unlock',
                 method: 'POST',
-                data: { id: userId },
-                success: function(response) {
+                data: {id: userId},
+                success: function (response) {
                     if (response.success) {
                         showToast(response.message, 'success');
                         setTimeout(() => location.reload(), 1000);
@@ -218,7 +224,7 @@
                         showToast(response.message, 'danger');
                     }
                 },
-                error: function() {
+                error: function () {
                     showToast('Помилка з\'єднання', 'danger');
                 }
             });
@@ -230,8 +236,8 @@
             $.ajax({
                 url: '/Admin/Users/Delete',
                 method: 'POST',
-                data: { id: userId },
-                success: function(response) {
+                data: {id: userId},
+                success: function (response) {
                     if (response.success) {
                         showToast(response.message, 'success');
                         setTimeout(() => location.reload(), 1000);
@@ -239,7 +245,113 @@
                         showToast(response.message, 'danger');
                     }
                 },
-                error: function() {
+                error: function () {
+                    showToast('Помилка з\'єднання', 'danger');
+                }
+            });
+        }
+
+        // Швидка зміна ролі
+        function quickRoleChange(userId, userName) {
+            // Показати модальне вікно з вибором ролей
+            const modalHtml = `
+        <div class="modal fade" id="quickRoleModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-user-tag"></i> Швидка зміна ролей
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-3">Користувач: <strong>${userName}</strong></p>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="quickRoleAdmin">
+                            <label class="form-check-label" for="quickRoleAdmin">
+                                <i class="fas fa-crown text-danger"></i> Admin
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="quickRoleManager">
+                            <label class="form-check-label" for="quickRoleManager">
+                                <i class="fas fa-user-tie text-warning"></i> Manager
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="quickRoleUser">
+                            <label class="form-check-label" for="quickRoleUser">
+                                <i class="fas fa-user text-info"></i> User
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Скасувати
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="saveQuickRoles('${userId}')">
+                            <i class="fas fa-save"></i> Зберегти
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+            // Видалити попереднє модальне вікно якщо є
+            $('#quickRoleModal').remove();
+
+            // Додати нове модальне вікно
+            $('body').append(modalHtml);
+
+            // Показати модальне вікно
+            const modal = new bootstrap.Modal(document.getElementById('quickRoleModal'));
+            modal.show();
+
+            // Завантажити поточні ролі
+            loadUserRoles(userId);
+        }
+
+        // Завантажити поточні ролі користувача
+        function loadUserRoles(userId) {
+            $.ajax({
+                url: `/Admin/Users/GetUserRoles?userId=${userId}`,
+                method: 'GET',
+                success: function (roles) {
+                    $('#quickRoleAdmin').prop('checked', roles.includes('Admin'));
+                    $('#quickRoleManager').prop('checked', roles.includes('Manager'));
+                    $('#quickRoleUser').prop('checked', roles.includes('User'));
+                }
+            });
+        }
+
+        // Зберегти швидкі ролі
+        function saveQuickRoles(userId) {
+            const roles = [];
+            if ($('#quickRoleAdmin').is(':checked')) roles.push('Admin');
+            if ($('#quickRoleManager').is(':checked')) roles.push('Manager');
+            if ($('#quickRoleUser').is(':checked')) roles.push('User');
+
+            if (roles.length === 0) {
+                showToast('Оберіть хоча б одну роль', 'warning');
+                return;
+            }
+
+            $.ajax({
+                url: '/Admin/Users/QuickUpdateRoles',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({userId: userId, roles: roles}),
+                success: function (response) {
+                    if (response.success) {
+                        showToast(response.message, 'success');
+                        $('#quickRoleModal').modal('hide');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showToast(response.message, 'danger');
+                    }
+                },
+                error: function () {
                     showToast('Помилка з\'єднання', 'danger');
                 }
             });

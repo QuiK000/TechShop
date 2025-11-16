@@ -2,13 +2,21 @@
 @{
     ViewData["Title"] = "Деталі користувача";
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var isCurrentUser = currentUserId == Model.User.Id;
 }
 
 <div class="page-header mb-4">
     <div class="d-flex justify-content-between align-items-center">
         <div>
-            <h1>@Model.User.FirstName @Model.User.LastName</h1>
-            <p class="text-muted">@Model.User.Email</p>
+            <h1><i class="fas fa-user-circle"></i> @Model.User.FirstName @Model.User.LastName</h1>
+            <p class="text-muted mb-0">
+                @Model.User.Email
+                @if (isCurrentUser)
+                {
+                    <span class="badge bg-info ms-2"><i class="fas fa-star"></i> Це ви</span>
+                }
+            </p>
         </div>
         <div>
             <a asp-action="Index" class="btn btn-secondary">
@@ -21,119 +29,216 @@
 <div class="row">
     <!-- Інформація про користувача -->
     <div class="col-lg-4">
+        <!-- Профіль -->
         <div class="table-card mb-4">
             <div class="text-center mb-3">
                 <div class="user-avatar mx-auto mb-3" 
-                     style="width: 100px; height: 100px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                    <span class="text-white" style="font-size: 2.5rem; font-weight: bold;">
+                     style="width: 120px; height: 120px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <span class="text-white" style="font-size: 3rem; font-weight: bold;">
                         @Model.User.FirstName.Substring(0, 1)@Model.User.LastName.Substring(0, 1)
                     </span>
                 </div>
-                <h4>@Model.User.FirstName @Model.User.LastName</h4>
-                <p class="text-muted">@Model.User.Email</p>
+                <h4 class="mb-1">@Model.User.FirstName @Model.User.LastName</h4>
+                <p class="text-muted small mb-3">@Model.User.Email</p>
                 
                 @if (Model.IsLocked)
                 {
-                    <span class="badge bg-danger fs-6">Заблоковано</span>
+                    <span class="badge bg-danger fs-6">
+                        <i class="fas fa-lock"></i> Заблоковано
+                    </span>
                 }
                 else
                 {
-                    <span class="badge bg-success fs-6">Активний</span>
+                    <span class="badge bg-success fs-6">
+                        <i class="fas fa-check-circle"></i> Активний
+                    </span>
                 }
             </div>
 
             <hr>
 
-            <div class="mb-3">
-                <strong>Телефон:</strong><br>
-                @(Model.User.PhoneNumber ?? "Не вказано")
-            </div>
+            <div class="user-info">
+                <div class="info-item mb-3">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-phone text-primary me-2 mt-1"></i>
+                        <div class="flex-grow-1">
+                            <small class="text-muted d-block">Телефон</small>
+                            <strong>@(Model.User.PhoneNumber ?? "Не вказано")</strong>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="mb-3">
-                <strong>Адреса:</strong><br>
-                @(Model.User.Address ?? "Не вказано")
-            </div>
+                <div class="info-item mb-3">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-map-marker-alt text-primary me-2 mt-1"></i>
+                        <div class="flex-grow-1">
+                            <small class="text-muted d-block">Адреса</small>
+                            <strong>@(Model.User.Address ?? "Не вказано")</strong>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="mb-3">
-                <strong>Дата реєстрації:</strong><br>
-                @Model.User.CreatedAt.ToString("dd.MM.yyyy HH:mm")
-            </div>
+                <div class="info-item mb-3">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-calendar text-primary me-2 mt-1"></i>
+                        <div class="flex-grow-1">
+                            <small class="text-muted d-block">Дата реєстрації</small>
+                            <strong>@Model.User.CreatedAt.ToString("dd MMMM yyyy")</strong>
+                            <small class="text-muted d-block">@Model.User.CreatedAt.ToString("HH:mm")</small>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="mb-3">
-                <strong>Ролі:</strong><br>
-                @foreach (var role in Model.Roles)
-                {
-                    @if (role == "Admin")
-                    {
-                        <span class="badge bg-danger me-1">@role</span>
-                    }
-                    else if (role == "Manager")
-                    {
-                        <span class="badge bg-warning me-1">@role</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-secondary me-1">@role</span>
-                    }
-                }
-                @if (!Model.Roles.Any())
-                {
-                    <span class="text-muted">Без ролей</span>
-                }
+                <div class="info-item">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-user-tag text-primary me-2 mt-1"></i>
+                        <div class="flex-grow-1">
+                            <small class="text-muted d-block mb-1">Ролі</small>
+                            @if (Model.Roles.Any())
+                            {
+                                <div class="roles-badges">
+                                    @foreach (var role in Model.Roles)
+                                    {
+                                        @if (role == "Admin")
+                                        {
+                                            <span class="badge bg-danger me-1 mb-1">
+                                                <i class="fas fa-crown"></i> @role
+                                            </span>
+                                        }
+                                        else if (role == "Manager")
+                                        {
+                                            <span class="badge bg-warning me-1 mb-1">
+                                                <i class="fas fa-user-tie"></i> @role
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary me-1 mb-1">
+                                                <i class="fas fa-user"></i> @role
+                                            </span>
+                                        }
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Без ролей</span>
+                            }
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <hr>
 
+            <!-- Дії -->
             <div class="d-grid gap-2">
                 <a asp-action="EditRoles" asp-route-id="@Model.User.Id" class="btn btn-warning">
                     <i class="fas fa-user-tag"></i> Редагувати ролі
                 </a>
                 
-                @if (Model.IsLocked)
+                @if (!isCurrentUser)
                 {
-                    <button onclick="unlockUser('@Model.User.Id')" class="btn btn-success">
-                        <i class="fas fa-unlock"></i> Розблокувати
+                    @if (Model.IsLocked)
+                    {
+                        <button onclick="unlockUser('@Model.User.Id')" class="btn btn-success">
+                            <i class="fas fa-unlock"></i> Розблокувати
+                        </button>
+                    }
+                    else
+                    {
+                        <button onclick="lockUser('@Model.User.Id')" class="btn btn-outline-warning">
+                            <i class="fas fa-lock"></i> Заблокувати
+                        </button>
+                    }
+                    
+                    <button onclick="deleteUser('@Model.User.Id')" class="btn btn-outline-danger">
+                        <i class="fas fa-trash"></i> Видалити користувача
                     </button>
                 }
                 else
                 {
-                    <button onclick="lockUser('@Model.User.Id')" class="btn btn-outline-warning">
-                        <i class="fas fa-lock"></i> Заблокувати
-                    </button>
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle"></i> <strong>Примітка:</strong> Це ваш обліковий запис. Ви не можете змінити власні права доступу або заблокувати себе.
+                    </div>
                 }
-                
-                <button onclick="deleteUser('@Model.User.Id')" class="btn btn-outline-danger">
-                    <i class="fas fa-trash"></i> Видалити користувача
-                </button>
             </div>
         </div>
 
         <!-- Статистика -->
         <div class="table-card">
-            <h5 class="mb-3"><i class="fas fa-chart-bar"></i> Статистика</h5>
+            <h6 class="mb-3"><i class="fas fa-chart-bar"></i> Статистика користувача</h6>
             
-            <div class="row text-center">
-                <div class="col-6 mb-3">
-                    <h3 class="text-primary">@Model.Orders.Count</h3>
-                    <small class="text-muted">Замовлень</small>
+            <div class="row text-center g-3">
+                <div class="col-6">
+                    <div class="stat-box">
+                        <h3 class="text-primary mb-1">@Model.Orders.Count</h3>
+                        <small class="text-muted">Замовлень</small>
+                    </div>
                 </div>
-                <div class="col-6 mb-3">
-                    <h3 class="text-success">@Model.Orders.Sum(o => o.TotalAmount).ToString("N0") ₴</h3>
-                    <small class="text-muted">Загальна сума</small>
+                <div class="col-6">
+                    <div class="stat-box">
+                        <h3 class="text-success mb-1">@Model.Orders.Sum(o => o.TotalAmount).ToString("N0")</h3>
+                        <small class="text-muted">₴ Всього</small>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stat-box">
+                        <h3 class="text-info mb-1">@Model.Orders.Count(o => o.Status == WebApplication2.Models.OrderStatus.Delivered)</h3>
+                        <small class="text-muted">Доставлено</small>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stat-box">
+                        <h3 class="text-warning mb-1">@Model.Orders.Count(o => o.Status == WebApplication2.Models.OrderStatus.New || o.Status == WebApplication2.Models.OrderStatus.Processing)</h3>
+                        <small class="text-muted">Активних</small>
+                    </div>
                 </div>
             </div>
+
+            @if (Model.Orders.Any())
+            {
+                <hr>
+                <div class="small">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Середній чек:</span>
+                        <strong>@((Model.Orders.Sum(o => o.TotalAmount) / Model.Orders.Count).ToString("N0")) ₴</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Останнє замовлення:</span>
+                        <strong>@Model.Orders.OrderByDescending(o => o.CreatedAt).First().CreatedAt.ToString("dd.MM.yyyy")</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Скасовано:</span>
+                        <strong class="text-danger">@Model.Orders.Count(o => o.Status == WebApplication2.Models.OrderStatus.Cancelled)</strong>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 
     <!-- Замовлення -->
     <div class="col-lg-8">
         <div class="table-card">
-            <h5 class="mb-3"><i class="fas fa-shopping-cart"></i> Історія замовлень (@Model.Orders.Count)</h5>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">
+                    <i class="fas fa-shopping-cart"></i> Історія замовлень 
+                    <span class="badge bg-primary">@Model.Orders.Count</span>
+                </h5>
+                @if (Model.Orders.Any())
+                {
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-primary" onclick="filterOrders('all')">Всі</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="filterOrders('active')">Активні</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="filterOrders('completed')">Завершені</button>
+                    </div>
+                }
+            </div>
             
             @if (Model.Orders.Any())
             {
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover" id="ordersTable">
                         <thead>
                             <tr>
                                 <th>№ Замовлення</th>
@@ -145,12 +250,29 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var order in Model.Orders)
+                            @foreach (var order in Model.Orders.OrderByDescending(o => o.CreatedAt))
                             {
-                                <tr>
-                                    <td><strong>@order.OrderNumber</strong></td>
-                                    <td>@order.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
-                                    <td>@order.OrderItems.Count шт.</td>
+                                var statusClass = order.Status switch
+                                {
+                                    WebApplication2.Models.OrderStatus.New => "active",
+                                    WebApplication2.Models.OrderStatus.Processing => "active",
+                                    WebApplication2.Models.OrderStatus.Shipped => "active",
+                                    WebApplication2.Models.OrderStatus.Delivered => "completed",
+                                    WebApplication2.Models.OrderStatus.Cancelled => "completed",
+                                    _ => "all"
+                                };
+                                
+                                <tr class="order-row" data-status="@statusClass">
+                                    <td>
+                                        <strong>@order.OrderNumber</strong>
+                                    </td>
+                                    <td>
+                                        <div>@order.CreatedAt.ToString("dd.MM.yyyy")</div>
+                                        <small class="text-muted">@order.CreatedAt.ToString("HH:mm")</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@order.OrderItems.Count шт.</span>
+                                    </td>
                                     <td><strong>@order.TotalAmount.ToString("N0") ₴</strong></td>
                                     <td>
                                         @switch (order.Status)
@@ -174,8 +296,8 @@
                                     </td>
                                     <td>
                                         <a asp-controller="Admin" asp-action="OrderDetails" asp-route-id="@order.Id" 
-                                           class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i> Деталі
+                                           class="btn btn-sm btn-outline-primary" title="Переглянути деталі">
+                                            <i class="fas fa-eye"></i>
                                         </a>
                                     </td>
                                 </tr>
@@ -186,7 +308,7 @@
             }
             else
             {
-                <div class="alert alert-info">
+                <div class="alert alert-info mb-0">
                     <i class="fas fa-info-circle"></i> Користувач ще не робив замовлень
                 </div>
             }
@@ -195,9 +317,40 @@
 </div>
 
 @section Scripts {
+    <style>
+        .user-info .info-item {
+            padding: 0.5rem 0;
+        }
+
+        .stat-box {
+            padding: 1rem;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .stat-box h3 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .roles-badges .badge {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.6rem;
+        }
+
+        .order-row {
+            transition: background-color 0.2s;
+        }
+
+        .order-row:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
+
     <script>
         function lockUser(userId) {
-            if (!confirm('Заблокувати користувача?')) return;
+            if (!confirm('Заблокувати користувача? Він не зможе увійти в систему.')) return;
 
             $.ajax({
                 url: '/Admin/Users/Lock',
@@ -210,6 +363,9 @@
                     } else {
                         showToast(response.message, 'danger');
                     }
+                },
+                error: function() {
+                    showToast('Помилка з\'єднання з сервером', 'danger');
                 }
             });
         }
@@ -228,12 +384,18 @@
                     } else {
                         showToast(response.message, 'danger');
                     }
+                },
+                error: function() {
+                    showToast('Помилка з\'єднання з сервером', 'danger');
                 }
             });
         }
 
         function deleteUser(userId) {
-            if (!confirm('Видалити користувача? Цю дію не можна відмінити.')) return;
+            if (!confirm('Видалити користувача? Цю дію НЕ МОЖНА відмінити!\n\nВся інформація про користувача буде втрачена назавжди.')) return;
+
+            // Друге підтвердження для безпеки
+            if (!confirm('Ви АБСОЛЮТНО впевнені? Натисніть OK для остаточного видалення.')) return;
 
             $.ajax({
                 url: '/Admin/Users/Delete',
@@ -246,8 +408,37 @@
                     } else {
                         showToast(response.message, 'danger');
                     }
+                },
+                error: function() {
+                    showToast('Помилка з\'єднання з сервером', 'danger');
                 }
             });
         }
+
+        function filterOrders(status) {
+            const rows = document.querySelectorAll('.order-row');
+            const buttons = document.querySelectorAll('.btn-group button');
+            
+            // Оновити активну кнопку
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Фільтрувати рядки
+            rows.forEach(row => {
+                if (status === 'all' || row.dataset.status === status) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Встановити "Всі" як активне за замовчуванням
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstBtn = document.querySelector('.btn-group button');
+            if (firstBtn) {
+                firstBtn.classList.add('active');
+            }
+        });
     </script>
 }
