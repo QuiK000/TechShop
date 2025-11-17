@@ -111,7 +111,7 @@ public class AdminController : Controller
     }
 
     [HttpPost]
-    // [ValidateAntiForgeryToken]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateProduct(Product product, IFormFile? image)
     {
         try
