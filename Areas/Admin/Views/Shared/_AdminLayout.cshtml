@@ -27,7 +27,7 @@
                         <i class="fas fa-home"></i> Головна
                     </a>
                 </li>
-                
+
                 <!-- Каталог Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
@@ -52,19 +52,19 @@
                         </li>
                     </ul>
                 </li>
-                
+
                 <li class="nav-item">
                     <a class="nav-link" href="/Admin/Admin/Orders">
                         <i class="fas fa-shopping-cart"></i> Замовлення
                     </a>
                 </li>
-                
+
                 <li class="nav-item">
                     <a class="nav-link" href="/Admin/Users/Index">
                         <i class="fas fa-users"></i> Користувачі
                     </a>
                 </li>
-                
+
                 <li class="nav-item">
                     <a class="nav-link" href="/Admin/Admin/Analytics">
                         <i class="fas fa-chart-line"></i> Аналітика
@@ -78,7 +78,7 @@
                         <i class="fas fa-external-link-alt"></i> Сайт
                     </a>
                 </li>
-                
+
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                         <i class="fas fa-user-circle"></i> @User.Identity?.Name
@@ -125,7 +125,6 @@
     </div>
     }
 
-    <!-- Anti-forgery token for AJAX requests -->
     @Html.AntiForgeryToken()
 
     @RenderBody()
@@ -139,10 +138,15 @@
     // Highlight active menu item
     document.addEventListener('DOMContentLoaded', function () {
         const currentPath = window.location.pathname;
-        document.querySelectorAll('.admin-topnav .nav-link').forEach(link => {
+        document.querySelectorAll('.admin-topnav .nav-link, .admin-topnav .dropdown-item').forEach(link => {
             const href = link.getAttribute('href');
-            if (href && currentPath.indexOf(href) !== -1 && href !== '/') {
+            if (href && currentPath.indexOf(href) !== -1 && href !== '/' && href !== '/Admin/Admin/Index') {
                 link.classList.add('active');
+                // Якщо це елемент dropdown, відкрити батьківський dropdown
+                const parentDropdown = link.closest('.dropdown');
+                if (parentDropdown) {
+                    parentDropdown.querySelector('.nav-link').classList.add('active');
+                }
             }
         });
 
@@ -150,25 +154,40 @@
         setTimeout(function () {
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(alert => {
-                const bsAlert = bootstrap.Alert.getInstance(alert);
-                if (bsAlert) {
-                    bsAlert.close();
-                }
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
             });
         }, 5000);
     });
 
-    // Global toast function (backup if not in site.js)
+    // Global toast function
     if (typeof showToast === 'undefined') {
         window.showToast = function(message, type) {
             type = type || 'success';
-            const bgClass = 'bg-' + type;
-            const toastHtml = '<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11"><div class="toast align-items-center text-white ' + bgClass + ' border-0" role="alert"><div class="d-flex"><div class="toast-body">' + message + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div></div>';
+            const bgClass = type === 'success' ? 'bg-success' :
+                type === 'danger' ? 'bg-danger' :
+                    type === 'warning' ? 'bg-warning' : 'bg-info';
+
+            const toastHtml = `
+                <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+                    <div class="toast align-items-center text-white ${bgClass} border-0" role="alert">
+                        <div class="d-flex">
+                            <div class="toast-body">${message}</div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                </div>
+            `;
 
             document.body.insertAdjacentHTML('beforeend', toastHtml);
-            const toastElement = document.querySelector('.toast:last-child');
-            const toast = new bootstrap.Toast(toastElement);
+            const toastElement = document.body.lastElementChild.querySelector('.toast');
+            const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
             toast.show();
+
+            // Видалити після показу
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                this.parentElement.remove();
+            });
         }
     }
 </script>

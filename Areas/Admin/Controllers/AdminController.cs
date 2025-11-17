@@ -58,7 +58,7 @@ public class AdminController : Controller
                     ProductId = g.Key,
                     ProductName = g.First().ProductName,
                     TotalSold = g.Sum(oi => oi.Quantity),
-                    Revenue = g.Sum(oi => oi.Price * oi.Quantity) // ✅ Виправлено
+                    Revenue = g.Sum(oi => oi.Price * oi.Quantity)
                 })
                 .OrderByDescending(p => p.Revenue)
                 .Take(5)
@@ -111,6 +111,7 @@ public class AdminController : Controller
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateProduct(Product product, IFormFile image)
     {
         if (ModelState.IsValid)
@@ -119,7 +120,7 @@ public class AdminController : Controller
             {
                 var fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
                 var path = Path.Combine(_environment.WebRootPath, "images", "products", fileName);
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
                 using (var stream = new FileStream(path, FileMode.Create))
                     await image.CopyToAsync(stream);
@@ -152,6 +153,7 @@ public class AdminController : Controller
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditProduct(Product product, IFormFile image)
     {
         if (ModelState.IsValid)
@@ -314,58 +316,6 @@ public class AdminController : Controller
         return Json(new { success = true, message = "Статус оновлено" });
     }
 
-    // КОРИСТУВАЧІ
-    public async Task<IActionResult> Users(string search, int page = 1)
-    {
-        var query = _userManager.Users.AsQueryable();
-
-        if (!string.IsNullOrEmpty(search))
-            query = query.Where(u =>
-                u.FirstName.Contains(search) ||
-                u.LastName.Contains(search) ||
-                u.Email.Contains(search));
-
-        var pageSize = 20;
-        var totalItems = await query.CountAsync();
-        var users = await query
-            .OrderByDescending(u => u.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-
-        ViewBag.CurrentPage = page;
-        ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
-        ViewBag.Search = search;
-
-        return View(users);
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> LockUser(string id)
-    {
-        var user = await _userManager.FindByIdAsync(id);
-        if (user == null)
-            return Json(new { success = false, message = "Користувача не знайдено" });
-        
-        var currentUser = await _userManager.GetUserAsync(User);
-        if (currentUser?.Id == id)
-            return Json(new { success = false, message = "Ви не можете заблокувати себе" });
-
-        await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100));
-        return Json(new { success = true, message = "Користувача заблоковано" });
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> UnlockUser(string id)
-    {
-        var user = await _userManager.FindByIdAsync(id);
-        if (user == null)
-            return Json(new { success = false, message = "Користувача не знайдено" });
-
-        await _userManager.SetLockoutEndDateAsync(user, null);
-        return Json(new { success = true, message = "Користувача розблоковано" });
-    }
-
     // СТАТИСТИКА
     public async Task<IActionResult> Analytics(DateTime? from, DateTime? to)
     {
@@ -419,19 +369,6 @@ public class AdminController : Controller
         };
 
         return View(model);
-    }
-
-    // НАЛАШТУВАННЯ
-    public IActionResult Settings()
-    {
-        return View();
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> ClearCache()
-    {
-        // Логіка очищення кешу
-        return Json(new { success = true, message = "Кеш очищено" });
     }
 }
 
