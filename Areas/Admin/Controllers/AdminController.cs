@@ -116,17 +116,21 @@ public class AdminController : Controller
     {
         try
         {
-            // Видаляємо валідацію для полів, які ми встановлюємо самостійно
-            ModelState.Remove("image");
+            ModelState.Remove("ImageUrl");
             ModelState.Remove("Category");
             ModelState.Remove("OrderItems");
             ModelState.Remove("Reviews");
             ModelState.Remove("ShoppingCartItems");
             ModelState.Remove("WishlistItems");
+            ModelState.Remove("CreatedAt");
+            ModelState.Remove("UpdatedAt");
+            ModelState.Remove("AverageRating");
+            ModelState.Remove("ReviewCount");
+            ModelState.Remove("image");
 
             if (!ModelState.IsValid)
             {
-                // Логування помилок валідації
+                // Логування помилок валідації для діагностики
                 var errors = ModelState.Values.SelectMany(v => v.Errors);
                 foreach (var error in errors)
                 {
@@ -161,7 +165,6 @@ public class AdminController : Controller
                 var fileName = $"{Guid.NewGuid()}{extension}";
                 var uploadsFolder = Path.Combine(_environment.WebRootPath, "images", "products");
 
-                // Створюємо папку, якщо не існує
                 Directory.CreateDirectory(uploadsFolder);
 
                 var filePath = Path.Combine(uploadsFolder, fileName);
@@ -201,7 +204,6 @@ public class AdminController : Controller
         }
         catch (Exception ex)
         {
-            // Логування помилки
             Console.WriteLine($"Error creating product: {ex.Message}");
             Console.WriteLine($"Stack trace: {ex.StackTrace}");
 
