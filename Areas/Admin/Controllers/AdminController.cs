@@ -112,24 +112,86 @@ public class AdminController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateProduct(Product product, IFormFile image)
+    public async Task<IActionResult> CreateProduct(Product product, IFormFile? image)
     {
-        if (ModelState.IsValid)
+        try
         {
-            if (image != null)
-            {
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
-                var path = Path.Combine(_environment.WebRootPath, "images", "products", fileName);
-                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            // Видаляємо валідацію для полів, які ми встановлюємо самостійно
+            ModelState.Remove("image");
+            ModelState.Remove("Category");
+            ModelState.Remove("OrderItems");
+            ModelState.Remove("Reviews");
+            ModelState.Remove("ShoppingCartItems");
+            ModelState.Remove("WishlistItems");
 
-                using (var stream = new FileStream(path, FileMode.Create))
+            if (!ModelState.IsValid)
+            {
+                // Логування помилок валідації
+                var errors = ModelState.Values.SelectMany(v => v.Errors);
+                foreach (var error in errors)
+                {
+                    Console.WriteLine($"Validation Error: {error.ErrorMessage}");
+                }
+
+                ViewBag.Categories = await _context.Categories.ToListAsync();
+                TempData["Error"] = "Помилка валідації форми. Перевірте введені дані.";
+                return View(product);
+            }
+
+            // Обробка зображення
+            if (image != null && image.Length > 0)
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                var extension = Path.GetExtension(image.FileName).ToLower();
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    ViewBag.Categories = await _context.Categories.ToListAsync();
+                    TempData["Error"] = "Недозволений формат файлу. Використовуйте JPG, PNG, GIF або WebP.";
+                    return View(product);
+                }
+
+                if (image.Length > 5 * 1024 * 1024) // 5MB
+                {
+                    ViewBag.Categories = await _context.Categories.ToListAsync();
+                    TempData["Error"] = "Розмір файлу не повинен перевищувати 5MB.";
+                    return View(product);
+                }
+
+                var fileName = $"{Guid.NewGuid()}{extension}";
+                var uploadsFolder = Path.Combine(_environment.WebRootPath, "images", "products");
+
+                // Створюємо папку, якщо не існує
+                Directory.CreateDirectory(uploadsFolder);
+
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
                     await image.CopyToAsync(stream);
+                }
 
                 product.ImageUrl = $"/images/products/{fileName}";
             }
+            else
+            {
+                product.ImageUrl = "/images/no-image.jpg";
+            }
 
+            // Встановлюємо значення за замовчуванням
             product.CreatedAt = DateTime.UtcNow;
             product.UpdatedAt = DateTime.UtcNow;
+            product.AverageRating = 0;
+            product.ReviewCount = 0;
+
+            // Перевірка існування категорії
+            var categoryExists = await _context.Categories.AnyAsync(c => c.Id == product.CategoryId);
+            if (!categoryExists)
+            {
+                ViewBag.Categories = await _context.Categories.ToListAsync();
+                TempData["Error"] = "Обрана категорія не існує.";
+                return View(product);
+            }
 
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
@@ -137,9 +199,16 @@ public class AdminController : Controller
             TempData["Success"] = "Товар успішно створено!";
             return RedirectToAction(nameof(Products));
         }
+        catch (Exception ex)
+        {
+            // Логування помилки
+            Console.WriteLine($"Error creating product: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
 
-        ViewBag.Categories = await _context.Categories.ToListAsync();
-        return View(product);
+            ViewBag.Categories = await _context.Categories.ToListAsync();
+            TempData["Error"] = $"Помилка при створенні товару: {ex.Message}";
+            return View(product);
+        }
     }
 
     [HttpGet]

@@ -1,23 +1,15 @@
 ﻿@using WebApplication2.Models
 @model WebApplication2.Models.Product
 @{
-    ViewData["Title"] = Model?.Id > 0 ? "Редагувати товар" : "Додати товар";
+    ViewData["Title"] = "Додати товар";
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
-    var isEdit = Model?.Id > 0;
 }
 
 <div class="row">
     <div class="col-lg-8">
-        <form method="post" enctype="multipart/form-data">
-            @if (isEdit)
-            {
-                <input type="hidden" asp-for="Id" />
-                <input type="hidden" asp-for="ImageUrl" />
-                <input type="hidden" asp-for="CreatedAt" />
-                <input type="hidden" asp-for="AverageRating" />
-                <input type="hidden" asp-for="ReviewCount" />
-            }
-
+        <form method="post" enctype="multipart/form-data" asp-action="CreateProduct">
+            @Html.AntiForgeryToken()
+            
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
             <!-- Основна інформація -->
@@ -25,20 +17,21 @@
                 <h5 class="mb-3">Основна інформація</h5>
 
                 <div class="mb-3">
-                    <label class="form-label">Назва товару *</label>
-                    <input asp-for="Name" class="form-control" required>
+                    <label asp-for="Name" class="form-label">Назва товару *</label>
+                    <input asp-for="Name" class="form-control" placeholder="Наприклад: ASUS ROG Strix G15" required>
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Опис *</label>
-                    <textarea asp-for="Description" class="form-control" rows="4" required></textarea>
+                    <label asp-for="Description" class="form-label">Опис *</label>
+                    <textarea asp-for="Description" class="form-control" rows="4" 
+                              placeholder="Детальний опис товару" required></textarea>
                     <span asp-validation-for="Description" class="text-danger"></span>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Категорія *</label>
+                        <label asp-for="CategoryId" class="form-label">Категорія *</label>
                         <select asp-for="CategoryId" class="form-select" required>
                             <option value="">Оберіть категорію...</option>
                             @foreach (var cat in ViewBag.Categories as List<Category>)
@@ -50,8 +43,8 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Бренд</label>
-                        <input asp-for="Brand" class="form-control" list="brands">
+                        <label asp-for="Brand" class="form-label">Бренд</label>
+                        <input asp-for="Brand" class="form-control" list="brands" placeholder="Наприклад: ASUS">
                         <datalist id="brands">
                             <option value="ASUS">
                             <option value="Lenovo">
@@ -62,26 +55,29 @@
                             <option value="MSI">
                             <option value="Logitech">
                         </datalist>
+                        <span asp-validation-for="Brand" class="text-danger"></span>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Ціна (грн) *</label>
-                        <input asp-for="Price" type="number" step="0.01" class="form-control" required>
+                        <label asp-for="Price" class="form-label">Ціна (грн) *</label>
+                        <input asp-for="Price" type="number" step="0.01" min="0" class="form-control" 
+                               placeholder="0.00" required>
                         <span asp-validation-for="Price" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Кількість на складі *</label>
-                        <input asp-for="StockQuantity" type="number" class="form-control" required>
+                        <label asp-for="StockQuantity" class="form-label">Кількість на складі *</label>
+                        <input asp-for="StockQuantity" type="number" min="0" class="form-control" 
+                               placeholder="0" required>
                         <span asp-validation-for="StockQuantity" class="text-danger"></span>
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <div class="form-check">
-                        <input asp-for="IsAvailable" class="form-check-input" type="checkbox">
+                        <input asp-for="IsAvailable" class="form-check-input" type="checkbox" checked>
                         <label asp-for="IsAvailable" class="form-check-label">
                             Доступний для продажу
                         </label>
@@ -93,21 +89,15 @@
             <div class="table-card mb-3">
                 <h5 class="mb-3">Зображення товару</h5>
 
-                @if (isEdit && !string.IsNullOrEmpty(Model.ImageUrl))
-                {
-                    <div class="mb-3">
-                        <img src="@Model.ImageUrl" class="img-thumbnail" style="max-width: 200px;">
-                    </div>
-                }
-
                 <div class="mb-3">
-                    <label class="form-label">Завантажити @(isEdit ? "нове " : "")зображення</label>
-                    <input type="file" name="image" class="form-control" accept="image/*" id="imageInput">
-                    <small class="text-muted">Рекомендований розмір: 800x800px</small>
+                    <label for="image" class="form-label">Завантажити зображення</label>
+                    <input type="file" name="image" id="imageInput" class="form-control" 
+                           accept="image/jpeg,image/jpg,image/png,image/gif,image/webp">
+                    <small class="text-muted">Рекомендований розмір: 800x800px. Максимум: 5MB. Формати: JPG, PNG, GIF, WebP</small>
                 </div>
 
-                <div id="imagePreview" class="d-none">
-                    <img id="preview" src="#" alt="Preview" class="img-thumbnail" style="max-width: 200px;">
+                <div id="imagePreview" class="d-none mt-3">
+                    <img id="preview" src="#" alt="Preview" class="img-thumbnail" style="max-width: 300px;">
                 </div>
             </div>
 
@@ -118,17 +108,20 @@
                 <div class="mb-3">
                     <textarea asp-for="Specifications" class="form-control" rows="5" 
                               placeholder='{"cpu":"Intel Core i5","ram":"8GB","storage":"256GB SSD"}'></textarea>
-                    <small class="text-muted">Формат JSON: {"ключ":"значення"}</small>
+                    <small class="text-muted">
+                        Формат JSON: {"ключ":"значення"}. Приклад:<br>
+                        {"cpu":"Intel Core i7","ram":"16GB","storage":"512GB SSD","display":"15.6 FHD"}
+                    </small>
                     <span asp-validation-for="Specifications" class="text-danger"></span>
                 </div>
             </div>
 
             <!-- Кнопки -->
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 mb-4">
                 <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> @(isEdit ? "Зберегти" : "Створити")
+                    <i class="fas fa-save"></i> Створити товар
                 </button>
-                <a href="/Admin/Admin/Products" class="btn btn-secondary">
+                <a asp-action="Products" class="btn btn-secondary">
                     <i class="fas fa-times"></i> Скасувати
                 </a>
             </div>
@@ -140,39 +133,70 @@
         <div class="table-card">
             <h5 class="mb-3"><i class="fas fa-info-circle"></i> Підказки</h5>
             <ul class="small mb-0">
+                <li>Поля позначені * є обов'язковими</li>
                 <li>Назва має бути зрозумілою та описовою</li>
-                <li>Додайте якісне фото товару</li>
+                <li>Додайте якісне фото товару (до 5MB)</li>
                 <li>Вкажіть правильну категорію</li>
                 <li>Характеристики у форматі JSON покращують SEO</li>
-                <li>Оновлюйте залишки товарів вчасно</li>
+                <li>Перевірте ціну та кількість перед збереженням</li>
             </ul>
         </div>
 
-        @if (isEdit)
-        {
-            <div class="table-card mt-3">
-                <h5 class="mb-3">Інформація</h5>
-                <p><strong>ID:</strong> @Model.Id</p>
-                <p><strong>Створено:</strong> @Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
-                <p><strong>Рейтинг:</strong> @Model.AverageRating.ToString("0.0")</p>
-                <p><strong>Відгуків:</strong> @Model.ReviewCount</p>
-            </div>
-        }
+        <div class="table-card mt-3 bg-light">
+            <h6 class="mb-2"><i class="fas fa-exclamation-triangle text-warning"></i> Важливо</h6>
+            <small>
+                • Ціна вказується у гривнях<br>
+                • Зображення має бути чітким<br>
+                • Опис має бути інформативним
+            </small>
+        </div>
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
-<script>
-    document.getElementById('imageInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                document.getElementById('preview').src = event.target.result;
-                document.getElementById('imagePreview').classList.remove('d-none');
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-</script>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Попередній перегляд зображення
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Перевірка розміру
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Розмір файлу не повинен перевищувати 5MB');
+                    this.value = '';
+                    return;
+                }
+                
+                // Перевірка типу
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Дозволені тільки JPG, PNG, GIF та WebP файли');
+                    this.value = '';
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('preview').src = event.target.result;
+                    document.getElementById('imagePreview').classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Валідація JSON перед відправкою
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const specificationsField = document.querySelector('[name="Specifications"]');
+            if (specificationsField.value.trim()) {
+                try {
+                    JSON.parse(specificationsField.value);
+                } catch (error) {
+                    e.preventDefault();
+                    alert('Помилка в форматі JSON характеристик. Перевірте правильність синтаксису.');
+                    specificationsField.focus();
+                    return false;
+                }
+            }
+        });
+    </script>
+}
