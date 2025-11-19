@@ -200,10 +200,6 @@
                 <button onclick="window.print()" class="btn btn-outline-primary">
                     <i class="fas fa-print"></i> Друк
                 </button>
-                <a asp-controller="Order" asp-action="DownloadReceipt" asp-route-id="@Model.Id" 
-                   class="btn btn-outline-secondary" target="_blank">
-                    <i class="fas fa-download"></i> Завантажити чек
-                </a>
                 @if (Model.Status != OrderStatus.Cancelled)
                 {
                     <button onclick="cancelOrder(@Model.Id)" class="btn btn-outline-danger">

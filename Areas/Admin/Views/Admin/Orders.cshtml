@@ -112,7 +112,7 @@
                             <small class="text-muted">@order.CreatedAt.ToString("HH:mm")</small>
                         </td>
                         <td>
-                            <a href="/Admin/OrderDetails/@order.Id" class="btn btn-sm btn-primary">
+                            <a href="/Admin/Admin/OrderDetails/@order.Id" class="btn btn-sm btn-primary">
                                 <i class="fas fa-eye"></i>
                             </a>
                         </td>
@@ -142,35 +142,62 @@
 
 @section Scripts {
     <script>
-        $('.status-select').change(function() {
-            const orderId = $(this).data('order-id');
-            const status = $(this).val();
-            const select = $(this);
-            
-            if (!confirm('Змінити статус замовлення?')) {
-                // Повернути попереднє значення
-                location.reload();
-                return;
-            }
+        $(document).ready(function() {
+            $('.status-select').change(function() {
+                const orderId = $(this).data('order-id');
+                const status = $(this).val();
+                const select = $(this);
 
-            $.post('/Admin/UpdateOrderStatus', { id: orderId, status: status }, function(response) {
-                if (response.success) {
-                    // Змінити колір select
-                    select.removeClass('form-select-sm').addClass('form-select-sm');
-                    
-                    // Показати повідомлення
-                    const toast = $('<div class="alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-3" style="z-index: 9999;">')
-                        .html('<i class="fas fa-check"></i> Статус оновлено! <button type="button" class="btn-close" data-bs-dismiss="alert"></button>');
-                    $('body').append(toast);
-                    setTimeout(() => toast.remove(), 3000);
-                } else {
-                    alert(response.message);
-                    location.reload();
+                if (!confirm('Змінити статус замовлення?')) {
+                    // Повернути попереднє значення
+                    $(this).prop('selectedIndex', this.defaultSelected);
+                    return;
                 }
-            }).fail(function() {
-                alert('Помилка з\'єднання');
-                location.reload();
+
+                // Показати індикатор завантаження
+                const originalText = $(this).find('option:selected').text();
+                $(this).prop('disabled', true).html('<option>Оновлення...</option>');
+
+                $.ajax({
+                    url: '@Url.Action("UpdateOrderStatus", "Admin", new { area = "Admin" })',
+                    type: 'POST',
+                    data: {
+                        id: orderId,
+                        status: status
+                    },
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Успішне оновлення
+                            showToast('success', '<i class="fas fa-check"></i> Статус оновлено!');
+                            
+                            // Оновити вигляд select
+                            setTimeout(() => {
+                                location.reload(); // Перезавантажити для оновлення статистики
+                            }, 1000);
+                        } else {
+                            showToast('error', response.message);
+                            location.reload();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Помилка:', error);
+                        console.log('XHR:', xhr);
+                        showToast('error', 'Помилка сервера: ' + error);
+                        location.reload();
+                    }
+                });
             });
+
+            function showToast(type, message) {
+                const toastClass = type === 'success' ? 'alert-success' : 'alert-danger';
+                const toast = $('<div class="alert ' + toastClass + ' alert-dismissible fade show position-fixed top-0 end-0 m-3" style="z-index: 9999; min-width: 300px;">')
+                    .html(message + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button>');
+                $('body').append(toast);
+                setTimeout(() => toast.alert('close'), 5000);
+            }
         });
     </script>
 }
