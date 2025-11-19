@@ -4,6 +4,36 @@
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
+<style>
+    .chart-container {
+        position: relative;
+        height: 400px;
+        width: 100%;
+    }
+    
+    #salesChart, #categoryChart {
+        width: 100% !important;
+        height: 400px !important;
+    }
+    
+    .stat-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-card h2 {
+        margin: 0;
+        font-weight: bold;
+    }
+    
+    .stat-card h5 {
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+</style>
+
 <div class="table-card mb-3">
     <h4 class="mb-3"><i class="fas fa-chart-line"></i> Аналітика продажів</h4>
 
@@ -44,208 +74,363 @@
     </div>
 </div>
 
-<!-- Графік продажів -->
-<div class="table-card mb-3">
-    <h5 class="mb-3">Динаміка продажів</h5>
-    <canvas id="salesChart" height="80"></canvas>
-</div>
-
-<div class="row">
-    <!-- Продажі по категоріях -->
-    <div class="col-lg-6">
-        <div class="table-card">
-            <h5 class="mb-3">Продажі по категоріях</h5>
-            <div class="table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Категорія</th>
-                            <th class="text-end">Замовлень</th>
-                            <th class="text-end">Сума</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var cat in Model.CategorySales)
-                        {
-                            <tr>
-                                <td><strong>@cat.CategoryName</strong></td>
-                                <td class="text-end">@cat.OrderCount</td>
-                                <td class="text-end"><strong>@cat.TotalSales.ToString("N0") ₴</strong></td>
-                            </tr>
-                        }
-                    </tbody>
-                    <tfoot>
-                        <tr class="fw-bold">
-                            <td>ВСЬОГО:</td>
-                            <td class="text-end">@Model.CategorySales.Sum(c => c.OrderCount)</td>
-                            <td class="text-end">@Model.CategorySales.Sum(c => c.TotalSales).ToString("N0") ₴</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-            <canvas id="categoryChart" height="250"></canvas>
-        </div>
-    </div>
-
-    <!-- Топ клієнти -->
-    <div class="col-lg-6">
-        <div class="table-card">
-            <h5 class="mb-3">Топ-10 клієнтів</h5>
-            <div class="table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Клієнт</th>
-                            <th class="text-end">Замовлень</th>
-                            <th class="text-end">Сума</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @{int rank = 1;}
-                        @foreach (var customer in Model.TopCustomers)
-                        {
-                            <tr>
-                                <td>@rank</td>
-                                <td>
-                                    <strong>@customer.CustomerName</strong>
-                                    @if (rank <= 3)
-                                    {
-                                        <i class="fas fa-crown text-warning ms-1"></i>
-                                    }
-                                </td>
-                                <td class="text-end">@customer.OrderCount</td>
-                                <td class="text-end"><strong>@customer.TotalSpent.ToString("N0") ₴</strong></td>
-                            </tr>
-                            rank++;
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Детальна статистика -->
-<div class="row mt-3">
+<!-- Загальна статистика -->
+<div class="row mb-4">
     <div class="col-md-3">
-        <div class="stat-card text-center">
-            <h5>Всього замовлень</h5>
+        <div class="stat-card text-center p-3 border rounded">
+            <h5 class="text-muted">Всього замовлень</h5>
             <h2 class="text-primary">@Model.SalesData.Sum(s => s.OrderCount)</h2>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="stat-card text-center">
-            <h5>Загальна виручка</h5>
+        <div class="stat-card text-center p-3 border rounded">
+            <h5 class="text-muted">Загальна виручка</h5>
             <h2 class="text-success">@Model.SalesData.Sum(s => s.Revenue).ToString("N0") ₴</h2>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="stat-card text-center">
-            <h5>Середній чек</h5>
+        <div class="stat-card text-center p-3 border rounded">
+            <h5 class="text-muted">Середній чек</h5>
             <h2 class="text-info">
-                @if (Model.SalesData.Sum(s => s.OrderCount) > 0)
-                {
-                    @((Model.SalesData.Sum(s => s.Revenue) / Model.SalesData.Sum(s => s.OrderCount)).ToString("N0"))
+                @{
+                    var totalOrders = Model.SalesData.Sum(s => s.OrderCount);
+                    var avgCheck = totalOrders > 0 ? Model.SalesData.Sum(s => s.Revenue) / totalOrders : 0;
                 }
-                else
-                {
-                    <text>0</text>
-                } ₴
+                @avgCheck.ToString("N0") ₴
             </h2>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="stat-card text-center">
-            <h5>Унікальних клієнтів</h5>
+        <div class="stat-card text-center p-3 border rounded">
+            <h5 class="text-muted">Унікальних клієнтів</h5>
             <h2 class="text-warning">@Model.TopCustomers.Count</h2>
         </div>
     </div>
 </div>
 
+@if (Model.SalesData.Any())
+{
+    <!-- Графік продажів -->
+    <div class="table-card mb-3">
+        <h5 class="mb-3">Динаміка продажів</h5>
+        <div class="chart-container">
+            <canvas id="salesChart"></canvas>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Продажі по категоріях -->
+        <div class="col-lg-6">
+            <div class="table-card">
+                <h5 class="mb-3">Продажі по категоріях</h5>
+                @if (Model.CategorySales.Any())
+                {
+                    <div class="table-responsive mb-3">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Категорія</th>
+                                <th class="text-end">Замовлень</th>
+                                <th class="text-end">Сума</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var cat in Model.CategorySales)
+                            {
+                                <tr>
+                                    <td><strong>@cat.CategoryName</strong></td>
+                                    <td class="text-end">@cat.OrderCount</td>
+                                    <td class="text-end"><strong>@cat.TotalSales.ToString("N0") ₴</strong></td>
+                                </tr>
+                            }
+                            </tbody>
+                            <tfoot>
+                            <tr class="fw-bold">
+                                <td>ВСЬОГО:</td>
+                                <td class="text-end">@Model.CategorySales.Sum(c => c.OrderCount)</td>
+                                <td class="text-end">@Model.CategorySales.Sum(c => c.TotalSales).ToString("N0") ₴</td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Немає даних про продажі по категоріях за обраний період.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Топ клієнти -->
+        <div class="col-lg-6">
+            <div class="table-card">
+                <h5 class="mb-3">Топ-10 клієнтів</h5>
+                @if (Model.TopCustomers.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Клієнт</th>
+                                    <th class="text-end">Замовлень</th>
+                                    <th class="text-end">Сума</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{int rank = 1;}
+                                @foreach (var customer in Model.TopCustomers)
+                                {
+                                    <tr>
+                                        <td>@rank</td>
+                                        <td>
+                                            <strong>@customer.CustomerName</strong>
+                                            @if (rank <= 3)
+                                            {
+                                                <i class="fas fa-crown text-warning ms-1"></i>
+                                            }
+                                        </td>
+                                        <td class="text-end">@customer.OrderCount</td>
+                                        <td class="text-end"><strong>@customer.TotalSpent.ToString("N0") ₴</strong></td>
+                                    </tr>
+                                    rank++;
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Немає даних про клієнтів за обраний період.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning text-center">
+        <i class="fas fa-exclamation-triangle"></i> Немає даних про продажі за обраний період.
+    </div>
+}
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Sales Chart
-        const salesData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SalesData));
-        
-        new Chart(document.getElementById('salesChart'), {
-            type: 'line',
-            data: {
-                labels: salesData.map(d => new Date(d.date).toLocaleDateString('uk-UA')),
-                datasets: [
-                    {
-                        label: 'Виручка (грн)',
-                        data: salesData.map(d => d.revenue),
-                        borderColor: 'rgb(75, 192, 192)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        tension: 0.4,
-                        fill: true
-                    },
-                    {
-                        label: 'Кількість замовлень',
-                        data: salesData.map(d => d.orderCount),
-                        borderColor: 'rgb(255, 99, 132)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        tension: 0.4,
-                        yAxisID: 'y1'
+        @if (Model.SalesData.Any())
+        {
+            <text>
+            document.addEventListener('DOMContentLoaded', function() {
+                const salesData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SalesData));
+                
+                console.log('Sales Data:', salesData);
+                
+                // Виправлення парсингу дат
+                const labels = salesData.map(d => {
+                    // Переконуємося, що дата коректно парситься
+                    let dateStr = d.date;
+                    if (dateStr.includes('T')) {
+                        dateStr = dateStr.split('T')[0]; // Беремо тільки дату
                     }
-                ]
-            },
-            options: {
-                responsive: true,
-                interaction: { mode: 'index', intersect: false },
-                scales: {
-                    y: {
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        title: { display: true, text: 'Виручка (₴)' }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        title: { display: true, text: 'Замовлень' },
-                        grid: { drawOnChartArea: false }
+                    const date = new Date(dateStr);
+                    
+                    // Перевірка чи дата валідна
+                    if (isNaN(date.getTime())) {
+                        console.error('Invalid date:', d.date);
+                        return 'Невідома дата';
                     }
-                }
-            }
-        });
+                    
+                    return date.toLocaleDateString('uk-UA', { 
+                        day: '2-digit', 
+                        month: '2-digit' 
+                    });
+                });
+                
+                console.log('Chart labels:', labels);
 
-        // Category Chart
-        const categoryData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CategorySales));
-        
-        new Chart(document.getElementById('categoryChart'), {
-            type: 'doughnut',
-            data: {
-                labels: categoryData.map(c => c.categoryName),
-                datasets: [{
-                    data: categoryData.map(c => c.totalSales),
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.8)',
-                        'rgba(54, 162, 235, 0.8)',
-                        'rgba(255, 206, 86, 0.8)',
-                        'rgba(75, 192, 192, 0.8)',
-                        'rgba(153, 102, 255, 0.8)',
-                        'rgba(255, 159, 64, 0.8)'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.label + ': ' + 
-                                       context.parsed.toLocaleString('uk-UA') + ' ₴';
+                const salesCtx = document.getElementById('salesChart').getContext('2d');
+                new Chart(salesCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Виручка (грн)',
+                                data: salesData.map(d => parseFloat(d.revenue)),
+                                borderColor: 'rgb(75, 192, 192)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Кількість замовлень',
+                                data: salesData.map(d => parseInt(d.orderCount)),
+                                borderColor: 'rgb(255, 99, 132)',
+                                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                                tension: 0.4,
+                                borderDash: [5, 5],
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { 
+                            mode: 'index', 
+                            intersect: false 
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.dataset.yAxisID === 'y') {
+                                            label += context.parsed.y.toLocaleString('uk-UA') + ' ₴';
+                                        } else {
+                                            label += context.parsed.y + ' замовлень';
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Дата'
+                                }
+                            },
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Виручка (₴)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString('uk-UA') + ' ₴';
+                                    }
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'Кількість замовлень'
+                                },
+                                grid: {
+                                    drawOnChartArea: false
+                                },
+                                ticks: {
+                                    precision: 0
+                                }
                             }
                         }
                     }
-                }
-            }
+                });
+                
+                console.log('Sales chart created successfully');
+            });
+            </text>
+        }
+
+        // Category Chart
+        @if (Model.CategorySales.Any())
+        {
+            <text>
+            document.addEventListener('DOMContentLoaded', function() {
+                const categoryData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CategorySales));
+                
+                console.log('Category Data:', categoryData);
+                
+                const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+                new Chart(categoryCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: categoryData.map(c => c.categoryName || 'Без категорії'),
+                        datasets: [{
+                            data: categoryData.map(c => parseFloat(c.totalSales || 0)),
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.8)',
+                                'rgba(54, 162, 235, 0.8)',
+                                'rgba(255, 206, 86, 0.8)',
+                                'rgba(75, 192, 192, 0.8)',
+                                'rgba(153, 102, 255, 0.8)',
+                                'rgba(255, 159, 64, 0.8)',
+                                'rgba(199, 199, 199, 0.8)',
+                                'rgba(83, 102, 255, 0.8)',
+                                'rgba(40, 159, 64, 0.8)',
+                                'rgba(210, 99, 132, 0.8)'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { 
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    usePointStyle: true
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.parsed;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                        return `${label}: ${value.toLocaleString('uk-UA')} ₴ (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                console.log('Category chart created successfully');
+            });
+            </text>
+        }
+
+        // Debug information
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Analytics page loaded');
+            console.log('Sales data count:', @Model.SalesData.Count);
+            console.log('Category data count:', @Model.CategorySales.Count);
+            console.log('Top customers count:', @Model.TopCustomers.Count);
+            
+            // Додаткова перевірка даних
+            const salesData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SalesData));
+            console.log('Raw sales dates:', salesData.map(d => d.date));
+            
+            // Перевірка кожного значення дати
+            salesData.forEach((d, index) => {
+                const date = new Date(d.date);
+                console.log(`Date ${index}: ${d.date} -> ${date} (valid: ${!isNaN(date.getTime())})`);
+            });
         });
     </script>
 }

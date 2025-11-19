@@ -472,18 +472,29 @@ public class AdminController : Controller
     }
 
     // СТАТИСТИКА
+    // СТАТИСТИКА
     public async Task<IActionResult> Analytics(DateTime? from, DateTime? to)
     {
-        var fromDate = from ?? DateTime.UtcNow.AddMonths(-1);
-        var toDate = to ?? DateTime.UtcNow;
-
-        var model = new AnalyticsViewModel
+        try
         {
-            FromDate = fromDate,
-            ToDate = toDate,
+            var fromDate = from ?? DateTime.UtcNow.AddMonths(-1);
+            var toDate = to ?? DateTime.UtcNow;
 
-            SalesData = await _context.Orders
+            // Переконуємося, що toDate включає весь день
+            toDate = toDate.Date.AddDays(1).AddSeconds(-1);
+
+            Console.WriteLine($"Analytics: from {fromDate} to {toDate}");
+
+            var model = new AnalyticsViewModel
+            {
+                FromDate = fromDate,
+                ToDate = toDate
+            };
+
+            // Статистика продажів по дням
+            var salesDataQuery = _context.Orders
                 .Where(o => o.CreatedAt >= fromDate && o.CreatedAt <= toDate)
+                .AsEnumerable() // Переходимо до локального виконання для группування по даті
                 .GroupBy(o => o.CreatedAt.Date)
                 .Select(g => new SalesDataPoint
                 {
@@ -492,13 +503,22 @@ public class AdminController : Controller
                     Revenue = g.Sum(o => o.TotalAmount)
                 })
                 .OrderBy(s => s.Date)
-                .ToListAsync(),
+                .ToList();
 
-            CategorySales = await _context.OrderItems
+            model.SalesData = salesDataQuery;
+
+            Console.WriteLine($"Found {salesDataQuery.Count} days with sales data");
+
+            // Продажі по категоріях
+            var categorySalesQuery = await _context.OrderItems
+                .Include(oi => oi.Order)
                 .Include(oi => oi.Product)
                 .ThenInclude(p => p.Category)
                 .Where(oi => oi.Order.CreatedAt >= fromDate && oi.Order.CreatedAt <= toDate)
-                .GroupBy(oi => oi.Product.Category.Name)
+                .ToListAsync();
+
+            var categorySales = categorySalesQuery
+                .GroupBy(oi => oi.Product.Category?.Name ?? "Без категорії")
                 .Select(g => new CategorySalesDto
                 {
                     CategoryName = g.Key,
@@ -506,24 +526,58 @@ public class AdminController : Controller
                     OrderCount = g.Select(oi => oi.OrderId).Distinct().Count()
                 })
                 .OrderByDescending(c => c.TotalSales)
-                .ToListAsync(),
+                .ToList();
 
-            TopCustomers = await _context.Orders
+            model.CategorySales = categorySales;
+
+            Console.WriteLine($"Found {categorySales.Count} categories with sales");
+
+            // Топ клієнти
+            var topCustomersQuery = await _context.Orders
+                .Include(o => o.User)
                 .Where(o => o.CreatedAt >= fromDate && o.CreatedAt <= toDate && o.User != null)
+                .ToListAsync();
+
+            var topCustomers = topCustomersQuery
                 .GroupBy(o => o.UserId)
                 .Select(g => new TopCustomerDto
                 {
                     UserId = g.Key,
-                    CustomerName = g.First().User.FirstName + " " + g.First().User.LastName,
+                    CustomerName = !string.IsNullOrEmpty(g.First().User.FirstName) &&
+                                   !string.IsNullOrEmpty(g.First().User.LastName)
+                        ? $"{g.First().User.FirstName} {g.First().User.LastName}"
+                        : g.First().User.Email ?? "Анонімний клієнт",
                     OrderCount = g.Count(),
                     TotalSpent = g.Sum(o => o.TotalAmount)
                 })
                 .OrderByDescending(c => c.TotalSpent)
                 .Take(10)
-                .ToListAsync()
-        };
+                .ToList();
 
-        return View(model);
+            model.TopCustomers = topCustomers;
+
+            Console.WriteLine($"Found {topCustomers.Count} top customers");
+
+            return View(model);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in Analytics: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+
+            // Повертаємо пусту модель у випадку помилки
+            var fromDate = from ?? DateTime.UtcNow.AddMonths(-1);
+            var toDate = to ?? DateTime.UtcNow;
+
+            return View(new AnalyticsViewModel
+            {
+                FromDate = fromDate,
+                ToDate = toDate,
+                SalesData = new List<SalesDataPoint>(),
+                CategorySales = new List<CategorySalesDto>(),
+                TopCustomers = new List<TopCustomerDto>()
+            });
+        }
     }
 }
 
