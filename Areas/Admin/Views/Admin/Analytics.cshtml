@@ -231,20 +231,28 @@ else
             document.addEventListener('DOMContentLoaded', function() {
                 const salesData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SalesData));
                 
-                console.log('Sales Data:', salesData);
+                console.log('Sales Data for chart:', salesData);
                 
-                // Виправлення парсингу дат
+                // Виправлення - перевірка наявності дати
                 const labels = salesData.map(d => {
-                    // Переконуємося, що дата коректно парситься
-                    let dateStr = d.date;
-                    if (dateStr.includes('T')) {
-                        dateStr = dateStr.split('T')[0]; // Беремо тільки дату
+                    // Використовуємо правильну назву поля (Date з великої літери)
+                    const dateValue = d.Date || d.date;
+                    
+                    if (!dateValue) {
+                        console.error('Date is undefined:', d);
+                        return 'Невідома дата';
                     }
+                    
+                    // Безпечний парсинг дати
+                    let dateStr = dateValue.toString();
+                    if (dateStr.includes('T')) {
+                        dateStr = dateStr.split('T')[0];
+                    }
+                    
                     const date = new Date(dateStr);
                     
-                    // Перевірка чи дата валідна
                     if (isNaN(date.getTime())) {
-                        console.error('Invalid date:', d.date);
+                        console.error('Invalid date:', dateStr);
                         return 'Невідома дата';
                     }
                     
@@ -256,7 +264,12 @@ else
                 
                 console.log('Chart labels:', labels);
 
-                const salesCtx = document.getElementById('salesChart').getContext('2d');
+                const salesCtx = document.getElementById('salesChart');
+                if (!salesCtx) {
+                    console.error('Sales chart canvas not found');
+                    return;
+                }
+
                 new Chart(salesCtx, {
                     type: 'line',
                     data: {
@@ -264,7 +277,7 @@ else
                         datasets: [
                             {
                                 label: 'Виручка (грн)',
-                                data: salesData.map(d => parseFloat(d.revenue)),
+                                data: salesData.map(d => parseFloat(d.Revenue || d.revenue || 0)),
                                 borderColor: 'rgb(75, 192, 192)',
                                 backgroundColor: 'rgba(75, 192, 192, 0.1)',
                                 tension: 0.4,
@@ -273,7 +286,7 @@ else
                             },
                             {
                                 label: 'Кількість замовлень',
-                                data: salesData.map(d => parseInt(d.orderCount)),
+                                data: salesData.map(d => parseInt(d.OrderCount || d.orderCount || 0)),
                                 borderColor: 'rgb(255, 99, 132)',
                                 backgroundColor: 'rgba(255, 99, 132, 0.1)',
                                 tension: 0.4,
@@ -361,13 +374,18 @@ else
                 
                 console.log('Category Data:', categoryData);
                 
-                const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+                const categoryCtx = document.getElementById('categoryChart');
+                if (!categoryCtx) {
+                    console.error('Category chart canvas not found');
+                    return;
+                }
+
                 new Chart(categoryCtx, {
                     type: 'pie',
                     data: {
-                        labels: categoryData.map(c => c.categoryName || 'Без категорії'),
+                        labels: categoryData.map(c => c.CategoryName || c.categoryName || 'Без категорії'),
                         datasets: [{
-                            data: categoryData.map(c => parseFloat(c.totalSales || 0)),
+                            data: categoryData.map(c => parseFloat(c.TotalSales || c.totalSales || 0)),
                             backgroundColor: [
                                 'rgba(255, 99, 132, 0.8)',
                                 'rgba(54, 162, 235, 0.8)',
@@ -422,15 +440,14 @@ else
             console.log('Category data count:', @Model.CategorySales.Count);
             console.log('Top customers count:', @Model.TopCustomers.Count);
             
-            // Додаткова перевірка даних
+            // Додаткова перевірка структури даних
             const salesData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SalesData));
-            console.log('Raw sales dates:', salesData.map(d => d.date));
+            console.log('Full sales data structure:', salesData);
             
-            // Перевірка кожного значення дати
-            salesData.forEach((d, index) => {
-                const date = new Date(d.date);
-                console.log(`Date ${index}: ${d.date} -> ${date} (valid: ${!isNaN(date.getTime())})`);
-            });
+            if (salesData.length > 0) {
+                console.log('First sales item keys:', Object.keys(salesData[0]));
+                console.log('First sales item:', salesData[0]);
+            }
         });
     </script>
 }
