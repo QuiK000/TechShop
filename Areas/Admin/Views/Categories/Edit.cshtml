@@ -1,9 +1,9 @@
 ﻿@using WebApplication2.Models
 @model WebApplication2.Models.Category
 @{
-    ViewData["Title"] = Model?.Id > 0 ? "Редагувати категорію" : "Додати категорію";
-    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
-    var isEdit = Model?.Id > 0;
+ViewData["Title"] = Model?.Id > 0 ? "Редагувати категорію" : "Додати категорію";
+Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+var isEdit = Model?.Id > 0;
 }
 
 <div class="page-header mb-4">
@@ -11,41 +11,68 @@
     <p class="text-muted">@(isEdit ? "Оновіть дані категорії" : "Створіть нову категорію товарів")</p>
 </div>
 
+@if (TempData["Success"] != null)
+{
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle"></i> @TempData["Success"]
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+}
+
+@if (TempData["Error"] != null)
+{
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+}
+
 <div class="row">
     <div class="col-lg-8">
         <div class="table-card">
-            <form asp-action="@(isEdit ? "Edit" : "Create")" method="post">
+            <!-- ВИПРАВЛЕНО: Додано явний action та method -->
+            <form method="post" asp-action="@(isEdit ? "Edit" : "Create")">
+                @Html.AntiForgeryToken()
+
                 @if (isEdit)
                 {
-                    <input type="hidden" asp-for="Id" />
-                    <input type="hidden" asp-for="CreatedAt" />
+                <!-- ВИПРАВЛЕНО: Використовуємо name атрибути як у формі продукту -->
+                <input type="hidden" name="Id" value="@Model.Id" />
+                <input type="hidden" name="CreatedAt" value="@Model.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss")" />
                 }
 
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <div asp-validation-summary="All" class="alert alert-danger"></div>
 
                 <div class="mb-3">
                     <label asp-for="Name" class="form-label">Назва категорії *</label>
-                    <input asp-for="Name" class="form-control" placeholder="Наприклад: Ноутбуки" required />
+                    <!-- ВИПРАВЛЕНО: Додано name атрибут -->
+                    <input asp-for="Name" name="Name" class="form-control" placeholder="Наприклад: Ноутбуки" required value="@Model.Name" />
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="Description" class="form-label">Опис</label>
-                    <textarea asp-for="Description" class="form-control" rows="3" 
-                              placeholder="Короткий опис категорії"></textarea>
+                    <!-- ВИПРАВЛЕНО: Додано name атрибут -->
+                    <textarea asp-for="Description" name="Description" class="form-control" rows="3"
+                              placeholder="Короткий опис категорії">@Model.Description</textarea>
                     <span asp-validation-for="Description" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="ParentCategoryId" class="form-label">Батьківська категорія</label>
-                    <select asp-for="ParentCategoryId" class="form-select">
+                    <!-- ВИПРАВЛЕНО: Додано name атрибут -->
+                    <select asp-for="ParentCategoryId" name="ParentCategoryId" class="form-select">
                         <option value="">Немає (головна категорія)</option>
-                        @foreach (var cat in ViewBag.ParentCategories as List<Category>)
+                        @if (ViewBag.ParentCategories != null)
                         {
-                            <option value="@cat.Id">@cat.Name</option>
+                        @foreach (SelectListItem item in ViewBag.ParentCategories)
+                        {
+                        <option value="@item.Value" selected="@(item.Value == Model.ParentCategoryId?.ToString())">@item.Text</option>
+                        }
                         }
                     </select>
                     <small class="text-muted">Залиште пустим для створення головної категорії</small>
+                    <span asp-validation-for="ParentCategoryId" class="text-danger"></span>
                 </div>
 
                 <div class="d-flex gap-2">
@@ -74,5 +101,24 @@
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+<partial name="_ValidationScriptsPartial" />
+<script>
+    // Додаткова перевірка перед відправкою форми
+    document.querySelector('form').addEventListener('submit', function(e) {
+        console.log('=== Category Form Submit Debug ===');
+        const formData = new FormData(this);
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
+
+        // Перевірка обов'язкових полів
+        const nameField = document.querySelector('[name="Name"]');
+        if (!nameField.value.trim()) {
+            e.preventDefault();
+            alert('Будь ласка, введіть назву категорії');
+            nameField.focus();
+            return false;
+        }
+    });
+</script>
 }

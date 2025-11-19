@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication2.db;
 using WebApplication2.Models;
@@ -32,10 +33,14 @@ public class CategoriesController : Controller
     // GET: Admin/Categories/Create
     public async Task<IActionResult> Create()
     {
-        ViewBag.ParentCategories = await _context.Categories
+        var category = new Category();
+        var parentCategories = await _context.Categories
             .Where(c => c.ParentCategoryId == null)
             .ToListAsync();
-        return View();
+
+        ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
+
+        return View(category);
     }
 
     // POST: Admin/Categories/Create
@@ -43,7 +48,32 @@ public class CategoriesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Category category)
     {
-        if (ModelState.IsValid)
+        Console.WriteLine("=== CREATE CATEGORY STARTED ===");
+        Console.WriteLine($"ModelState IsValid: {ModelState.IsValid}");
+        Console.WriteLine($"Category Name: {category.Name}");
+        Console.WriteLine($"Category Description: {category.Description}");
+        Console.WriteLine($"Category ParentCategoryId: {category.ParentCategoryId}");
+
+        // Логуємо всі помилки валідації
+        if (!ModelState.IsValid)
+        {
+            foreach (var error in ModelState)
+            {
+                foreach (var err in error.Value.Errors)
+                {
+                    Console.WriteLine($"Error in {error.Key}: {err.ErrorMessage}");
+                }
+            }
+
+            var parentCategories = await _context.Categories
+                .Where(c => c.ParentCategoryId == null)
+                .ToListAsync();
+
+            ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
+            return View(category);
+        }
+
+        try
         {
             category.CreatedAt = DateTime.UtcNow;
             _context.Categories.Add(category);
@@ -52,23 +82,36 @@ public class CategoriesController : Controller
             TempData["Success"] = "Категорію успішно створено!";
             return RedirectToAction(nameof(Index));
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+            TempData["Error"] = $"Помилка при створенні категорії: {ex.Message}";
 
-        ViewBag.ParentCategories = await _context.Categories
-            .Where(c => c.ParentCategoryId == null)
-            .ToListAsync();
-        return View(category);
+            var parentCategories = await _context.Categories
+                .Where(c => c.ParentCategoryId == null)
+                .ToListAsync();
+
+            ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
+            return View(category);
+        }
     }
 
     // GET: Admin/Categories/Edit/5
+    [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
         var category = await _context.Categories.FindAsync(id);
         if (category == null)
-            return NotFound();
+        {
+            TempData["Error"] = "Категорію не знайдено";
+            return RedirectToAction(nameof(Index));
+        }
 
-        ViewBag.ParentCategories = await _context.Categories
+        var parentCategories = await _context.Categories
             .Where(c => c.ParentCategoryId == null && c.Id != id)
             .ToListAsync();
+
+        ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
 
         return View(category);
     }
@@ -76,34 +119,78 @@ public class CategoriesController : Controller
     // POST: Admin/Categories/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, Category category)
+    public async Task<IActionResult> Edit(Category category)
     {
-        if (id != category.Id)
-            return NotFound();
+        Console.WriteLine("=== EDIT CATEGORY STARTED ===");
+        Console.WriteLine($"Category ID: {category.Id}");
+        Console.WriteLine($"Received Name: '{category.Name}'");
+        Console.WriteLine($"Received Description: '{category.Description}'");
+        Console.WriteLine($"Received ParentCategoryId: {category.ParentCategoryId}");
+        Console.WriteLine($"ModelState IsValid: {ModelState.IsValid}");
 
-        if (ModelState.IsValid)
+        ModelState.Remove("Products");
+        ModelState.Remove("SubCategories");
+        ModelState.Remove("ParentCategory");
+
+        if (!ModelState.IsValid)
         {
-            try
+            foreach (var error in ModelState)
             {
-                _context.Update(category);
-                await _context.SaveChangesAsync();
+                foreach (var err in error.Value.Errors)
+                {
+                    Console.WriteLine($"Error in {error.Key}: {err.ErrorMessage}");
+                }
+            }
 
-                TempData["Success"] = "Категорію оновлено!";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CategoryExists(category.Id))
-                    return NotFound();
-                throw;
-            }
+            var parentCategories = await _context.Categories
+                .Where(c => c.ParentCategoryId == null && c.Id != category.Id)
+                .ToListAsync();
+
+            ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
+            return View(category);
         }
 
-        ViewBag.ParentCategories = await _context.Categories
-            .Where(c => c.ParentCategoryId == null && c.Id != id)
-            .ToListAsync();
+        try
+        {
+            var existingCategory = await _context.Categories.FindAsync(category.Id);
+            if (existingCategory == null)
+            {
+                TempData["Error"] = "Категорію не знайдено";
+                return RedirectToAction(nameof(Index));
+            }
 
-        return View(category);
+            existingCategory.Name = category.Name;
+            existingCategory.Description = category.Description;
+            existingCategory.ParentCategoryId = category.ParentCategoryId;
+
+            _context.Categories.Update(existingCategory);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Категорію успішно оновлено!";
+            return RedirectToAction(nameof(Index));
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!CategoryExists(category.Id))
+            {
+                TempData["Error"] = "Категорію не знайдено";
+                return RedirectToAction(nameof(Index));
+            }
+
+            throw;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+            TempData["Error"] = $"Помилка при оновленні категорії: {ex.Message}";
+
+            var parentCategories = await _context.Categories
+                .Where(c => c.ParentCategoryId == null && c.Id != category.Id)
+                .ToListAsync();
+
+            ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
+            return View(category);
+        }
     }
 
     // POST: Admin/Categories/Delete/5

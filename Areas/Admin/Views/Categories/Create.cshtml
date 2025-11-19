@@ -11,41 +11,63 @@
     <p class="text-muted">@(isEdit ? "Оновіть дані категорії" : "Створіть нову категорію товарів")</p>
 </div>
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 <div class="row">
     <div class="col-lg-8">
         <div class="table-card">
-            <form asp-action="@(isEdit ? "Edit" : "Create")" method="post">
+            <form method="post" asp-action="@(isEdit ? "Edit" : "Create")">
+                @Html.AntiForgeryToken()
+
                 @if (isEdit)
                 {
-                    <input type="hidden" asp-for="Id" />
-                    <input type="hidden" asp-for="CreatedAt" />
+                    <input type="hidden" asp-for="Id" name="Id" />
+                    <input type="hidden" asp-for="CreatedAt" name="CreatedAt" />
                 }
 
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <div asp-validation-summary="All" class="alert alert-danger"></div>
 
                 <div class="mb-3">
                     <label asp-for="Name" class="form-label">Назва категорії *</label>
-                    <input asp-for="Name" class="form-control" placeholder="Наприклад: Ноутбуки" required />
+                    <input asp-for="Name" name="Name" class="form-control" placeholder="Наприклад: Ноутбуки" required />
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="Description" class="form-label">Опис</label>
-                    <textarea asp-for="Description" class="form-control" rows="3" 
+                    <textarea asp-for="Description" name="Description" class="form-control" rows="3" 
                               placeholder="Короткий опис категорії"></textarea>
                     <span asp-validation-for="Description" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="ParentCategoryId" class="form-label">Батьківська категорія</label>
-                    <select asp-for="ParentCategoryId" class="form-select">
+                    <select asp-for="ParentCategoryId" name="ParentCategoryId" class="form-select">
                         <option value="">Немає (головна категорія)</option>
-                        @foreach (var cat in ViewBag.ParentCategories as List<Category>)
+                        @if (ViewBag.ParentCategories != null)
                         {
-                            <option value="@cat.Id">@cat.Name</option>
+                            @foreach (SelectListItem item in ViewBag.ParentCategories)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
                         }
                     </select>
                     <small class="text-muted">Залиште пустим для створення головної категорії</small>
+                    <span asp-validation-for="ParentCategoryId" class="text-danger"></span>
                 </div>
 
                 <div class="d-flex gap-2">
@@ -75,4 +97,23 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Додаткова перевірка перед відправкою форми
+        document.querySelector('form').addEventListener('submit', function(e) {
+            console.log('=== Category Form Submit Debug ===');
+            const formData = new FormData(this);
+            for (let pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
+            }
+            
+            // Перевірка обов'язкових полів
+            const nameField = document.querySelector('[name="Name"]');
+            if (!nameField.value.trim()) {
+                e.preventDefault();
+                alert('Будь ласка, введіть назву категорії');
+                nameField.focus();
+                return false;
+            }
+        });
+    </script>
 }
