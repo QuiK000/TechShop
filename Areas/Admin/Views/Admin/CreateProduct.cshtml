@@ -7,11 +7,10 @@
 
 <div class="row">
     <div class="col-lg-8">
-        <form method="post"
-              enctype="multipart/form-data"
-              asp-area="Admin"
-              asp-controller="Admin"
-              asp-action="CreateProduct">
+        <form method="post" enctype="multipart/form-data" asp-action="CreateProduct">
+            <input type="hidden" asp-for="Id" value="0" />
+            <input type="hidden" asp-for="AverageRating" value="0" />
+            <input type="hidden" asp-for="ReviewCount" value="0" />
             @Html.AntiForgeryToken()
 
             <!-- Основна інформація -->
