@@ -1,14 +1,19 @@
 ﻿@using WebApplication2.Models
 @model WebApplication2.Models.Product
 @{
-    ViewData["Title"] = "Додати товар";
+    ViewData["Title"] = "Редагувати товар";
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
 <div class="row">
     <div class="col-lg-8">
-        <form method="post" enctype="multipart/form-data" asp-action="CreateProduct">
+        <form method="post" enctype="multipart/form-data" asp-action="EditProduct">
             @Html.AntiForgeryToken()
+            
+            <!-- Приховані поля -->
+            <input type="hidden" name="Id" value="@Model.Id" />
+            <input type="hidden" name="CreatedAt" value="@Model.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss")" />
+            <input type="hidden" name="ImageUrl" value="@Model.ImageUrl" />
 
             <!-- Основна інформація -->
             <div class="table-card mb-3">
@@ -16,14 +21,16 @@
 
                 <div class="mb-3">
                     <label asp-for="Name" class="form-label">Назва товару *</label>
-                    <input asp-for="Name" name="Name" class="form-control" placeholder="Наприклад: ASUS ROG Strix G15" required>
+                    <input asp-for="Name" name="Name" class="form-control" 
+                           placeholder="Наприклад: ASUS ROG Strix G15" required
+                           value="@Model.Name">
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="Description" class="form-label">Опис *</label>
                     <textarea asp-for="Description" name="Description" class="form-control" rows="4" 
-                              placeholder="Детальний опис товару" required></textarea>
+                              placeholder="Детальний опис товару" required>@Model.Description</textarea>
                     <span asp-validation-for="Description" class="text-danger"></span>
                 </div>
 
@@ -34,7 +41,7 @@
                             <option value="">Оберіть категорію...</option>
                             @foreach (var cat in ViewBag.Categories as List<Category>)
                             {
-                                <option value="@cat.Id">@cat.Name</option>
+                                <option value="@cat.Id" selected="@(cat.Id == Model.CategoryId)">@cat.Name</option>
                             }
                         </select>
                         <span asp-validation-for="CategoryId" class="text-danger"></span>
@@ -42,7 +49,8 @@
 
                     <div class="col-md-6 mb-3">
                         <label asp-for="Brand" class="form-label">Бренд</label>
-                        <input asp-for="Brand" name="Brand" class="form-control" list="brands" placeholder="Наприклад: ASUS">
+                        <input asp-for="Brand" name="Brand" class="form-control" list="brands" 
+                               placeholder="Наприклад: ASUS" value="@Model.Brand">
                         <datalist id="brands">
                             <option value="ASUS">
                             <option value="Lenovo">
@@ -69,15 +77,20 @@
 
                     <div class="col-md-6 mb-3">
                         <label asp-for="StockQuantity" class="form-label">Кількість на складі *</label>
-                        <input asp-for="StockQuantity" name="StockQuantity" type="number" min="0" class="form-control" 
-                               placeholder="0" required>
+                        <input asp-for="StockQuantity" name="StockQuantity" type="number" min="0" 
+                               class="form-control" placeholder="0" required
+                               value="@Model.StockQuantity">
                         <span asp-validation-for="StockQuantity" class="text-danger"></span>
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <div class="form-check">
-                        <input asp-for="IsAvailable" name="IsAvailable" class="form-check-input" type="checkbox" value="true" checked>
+                        @{
+                            var isChecked = Model.IsAvailable ? "checked" : "";
+                        }
+                        <input asp-for="IsAvailable" name="IsAvailable" class="form-check-input" 
+                               type="checkbox" value="true" @isChecked>
                         <input type="hidden" name="IsAvailable" value="false" />
                         <label asp-for="IsAvailable" class="form-check-label">
                             Доступний для продажу
@@ -90,8 +103,20 @@
             <div class="table-card mb-3">
                 <h5 class="mb-3">Зображення товару</h5>
 
+                <!-- Поточне зображення -->
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <div class="mb-3">
+                        <label class="form-label">Поточне зображення</label>
+                        <div>
+                            <img src="@Model.ImageUrl" alt="Поточне зображення" 
+                                 class="img-thumbnail" style="max-width: 200px;">
+                        </div>
+                    </div>
+                }
+
                 <div class="mb-3">
-                    <label for="image" class="form-label">Завантажити зображення</label>
+                    <label for="image" class="form-label">Змінити зображення</label>
                     <input type="file" name="image" id="imageInput" class="form-control" 
                            accept="image/jpeg,image/jpg,image/png,image/gif,image/webp">
                     <small class="text-muted">Рекомендований розмір: 800x800px. Максимум: 5MB. Формати: JPG, PNG, GIF, WebP</small>
@@ -108,7 +133,7 @@
 
                 <div class="mb-3">
                     <textarea asp-for="Specifications" name="Specifications" class="form-control" rows="5" 
-                              placeholder='{"cpu":"Intel Core i5","ram":"8GB","storage":"256GB SSD"}'></textarea>
+                              placeholder='{"cpu":"Intel Core i5","ram":"8GB","storage":"256GB SSD"}'>@Model.Specifications</textarea>
                     <small class="text-muted">
                         Формат JSON: {"ключ":"значення"}. Приклад:<br>
                         {"cpu":"Intel Core i7","ram":"16GB","storage":"512GB SSD","display":"15.6 FHD"}
@@ -120,7 +145,7 @@
             <!-- Кнопки -->
             <div class="d-flex gap-2 mb-4">
                 <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Створити товар
+                    <i class="fas fa-save"></i> Оновити товар
                 </button>
                 <a asp-action="Products" class="btn btn-secondary">
                     <i class="fas fa-times"></i> Скасувати
@@ -202,7 +227,7 @@
 
         // Додаткова перевірка перед відправкою
         document.querySelector('form').addEventListener('submit', function(e) {
-            console.log('=== Form Submit Debug ===');
+            console.log('=== Edit Form Submit Debug ===');
             const formData = new FormData(this);
             for (let pair of formData.entries()) {
                 console.log(pair[0] + ': ' + pair[1]);

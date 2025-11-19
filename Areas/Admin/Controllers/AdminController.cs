@@ -231,8 +231,15 @@ public class AdminController : Controller
     [HttpGet]
     public async Task<IActionResult> EditProduct(int id)
     {
-        var product = await _context.Products.FindAsync(id);
-        if (product == null) return NotFound();
+        var product = await _context.Products
+            .Include(p => p.Category)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (product == null)
+        {
+            TempData["Error"] = "Товар не знайдено";
+            return RedirectToAction(nameof(Products));
+        }
 
         ViewBag.Categories = await _context.Categories.ToListAsync();
         return View(product);
@@ -240,50 +247,112 @@ public class AdminController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditProduct(Product product, IFormFile image)
+    public async Task<IActionResult> EditProduct(Product product, IFormFile? image)
     {
-        if (ModelState.IsValid)
+        try
         {
-            var existing = await _context.Products.FindAsync(product.Id);
-            if (existing == null) return NotFound();
+            Console.WriteLine("===== EditProduct started =====");
+            Console.WriteLine($"ID: {product.Id}");
+            Console.WriteLine($"Name: {product.Name}");
+            Console.WriteLine($"Price: {product.Price}");
 
-            if (image != null)
+            // Видаляємо з ModelState поля, які не приходять з форми
+            ModelState.Remove("ImageUrl");
+            ModelState.Remove("Category");
+            ModelState.Remove("OrderItems");
+            ModelState.Remove("Reviews");
+            ModelState.Remove("ShoppingCartItems");
+            ModelState.Remove("WishlistItems");
+            ModelState.Remove("CreatedAt");
+            ModelState.Remove("UpdatedAt");
+            ModelState.Remove("AverageRating");
+            ModelState.Remove("ReviewCount");
+            ModelState.Remove("image");
+
+            if (!ModelState.IsValid)
             {
-                // Видалити старе зображення
-                if (!string.IsNullOrEmpty(existing.ImageUrl))
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
                 {
-                    var oldPath = Path.Combine(_environment.WebRootPath, existing.ImageUrl.TrimStart('/'));
+                    Console.WriteLine($"ModelState Error: {error.ErrorMessage}");
+                }
+
+                ViewBag.Categories = await _context.Categories.ToListAsync();
+                TempData["Error"] = "Помилка валідації форми. Перевірте введені дані.";
+                return View(product);
+            }
+
+            var existingProduct = await _context.Products.FindAsync(product.Id);
+            if (existingProduct == null)
+            {
+                TempData["Error"] = "Товар не знайдено";
+                return RedirectToAction(nameof(Products));
+            }
+
+            // Обробка зображення
+            if (image != null && image.Length > 0)
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                var extension = Path.GetExtension(image.FileName).ToLower();
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    ViewBag.Categories = await _context.Categories.ToListAsync();
+                    TempData["Error"] = "Недозволений формат файлу. Використовуйте JPG, PNG, GIF або WebP.";
+                    return View(product);
+                }
+
+                if (image.Length > 5 * 1024 * 1024)
+                {
+                    ViewBag.Categories = await _context.Categories.ToListAsync();
+                    TempData["Error"] = "Розмір файлу не повинен перевищувати 5MB.";
+                    return View(product);
+                }
+
+                // Видалити старе зображення
+                if (!string.IsNullOrEmpty(existingProduct.ImageUrl) &&
+                    existingProduct.ImageUrl != "/images/no-image.jpg")
+                {
+                    var oldPath = Path.Combine(_environment.WebRootPath, existingProduct.ImageUrl.TrimStart('/'));
                     if (System.IO.File.Exists(oldPath))
                         System.IO.File.Delete(oldPath);
                 }
 
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
-                var path = Path.Combine(_environment.WebRootPath, "images", "products", fileName);
+                var fileName = $"{Guid.NewGuid()}{extension}";
+                var uploadsFolder = Path.Combine(_environment.WebRootPath, "images", "products");
+                Directory.CreateDirectory(uploadsFolder);
 
-                using (var stream = new FileStream(path, FileMode.Create))
+                var filePath = Path.Combine(uploadsFolder, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
                     await image.CopyToAsync(stream);
+                }
 
-                existing.ImageUrl = $"/images/products/{fileName}";
+                existingProduct.ImageUrl = $"/images/products/{fileName}";
             }
 
-            existing.Name = product.Name;
-            existing.Description = product.Description;
-            existing.Price = product.Price;
-            existing.CategoryId = product.CategoryId;
-            existing.Brand = product.Brand;
-            existing.StockQuantity = product.StockQuantity;
-            existing.Specifications = product.Specifications;
-            existing.IsAvailable = product.IsAvailable;
-            existing.UpdatedAt = DateTime.UtcNow;
+            // Оновлюємо поля
+            existingProduct.Name = product.Name;
+            existingProduct.Description = product.Description;
+            existingProduct.Price = product.Price;
+            existingProduct.CategoryId = product.CategoryId;
+            existingProduct.Brand = product.Brand;
+            existingProduct.StockQuantity = product.StockQuantity;
+            existingProduct.Specifications = product.Specifications;
+            existingProduct.IsAvailable = product.IsAvailable;
+            existingProduct.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Товар оновлено!";
+            TempData["Success"] = "Товар успішно оновлено!";
             return RedirectToAction(nameof(Products));
         }
-
-        ViewBag.Categories = await _context.Categories.ToListAsync();
-        return View(product);
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating product: {ex.Message}");
+            ViewBag.Categories = await _context.Categories.ToListAsync();
+            TempData["Error"] = $"Помилка при оновленні товару: {ex.Message}";
+            return View(product);
+        }
     }
 
     [HttpPost]
